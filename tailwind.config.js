@@ -9,11 +9,19 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
-      background: "#1F222A",
-      secondary: "",
-      primary: "#4169e1",
-      textPrimary: "#FFFFFF",
-      textSecondary: "#E0E0E0",
+      colors: {
+        background: "#1F222A",
+        icon: "#A7A7A7",
+        primary: "#4169e1",
+        textPrimary: "#FFFFFF",
+        textSecondary: "#E0E0E0",
+      },
+      fontFamily: {
+        MonThin: ["thin"],
+        MonRegular: ["regular"],
+        MonMedium: ["medium"],
+        MonBold: ["bold"],
+      },
     },
   },
   plugins: [],
