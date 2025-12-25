@@ -1,64 +1,90 @@
-import { View, Text, Image } from 'react-native'
-import { useState, useEffect } from 'react'
-import { getColors } from 'react-native-image-colors';
-import { icons } from '@/constants/icons'
-import { images } from '@/constants/image';
+import { View, Text, Image, Pressable } from "react-native";
+import { icons } from "@/constants/icons";
+import { images } from "@/constants/image";
+import { LivePulse } from "./LivePulse";
+import CreatorCover from "./CreatorCover";
+import LiveChannelName from "./LiveChannelName";
 
-let timeClass = 'text-textSecondary font-MonMedium text-sm';
-let listenerImageClass = "w-8 h-8 rounded-full -ml-3 border border-2 border-[#4169e19e]"
-let imageUri = images.profile2
+const timeClass = "text-textSecondary font-MonMedium text-sm";
 
+const listenerImageClass = "w-8 h-8 rounded-full -ml-3 border border-[#1E4D5F]";
 
 const Livecard = () => {
-    const [dominantColor, setDominantColor] = useState('#ffffff');
-
-  useEffect(() => {
-    const extractColor = async () => {
-      try {
-        const colors = await getColors(imageUri);
-        setDominantColor(colors.dominant); // Just the color string
-      } catch (error) {
-        console.log('Error extracting color:', error);
-      }
-    };
-    
-    extractColor();
-  }, [imageUri]); // Add imageUri as dependency
   return (
-    <View className='flex-1 h-48'>
-      <View className='w-full h-full bg-[#4169e19e] rounded-xl p-2'>
-        <View className='flex-1 h-1/2 flex flex-row items-start justify-between'>
-            <View className='flex flex-1 flex-row items-start justify-start gap-4'>
-                <View className='w-20 h-20'>
-                    <Image className='w-full h-full' source={images.pod2}></Image>
-                </View>
-                <View>
-                    <Text numberOfLines={1} className='font-MonBold text-textPrimary text-xl'>Holy Fire (Live) radio</Text>
-                    <View className='flex-row items-center gap-2'>
-                        <Text className={timeClass}>Pod</Text>
-                        <Text className={timeClass}>|</Text>
-                        <Text className={timeClass}>52:27 mins</Text>
-                    </View>
-                </View>
-            </View>
-            <Image source={icons.menu} className='w-7 h-7'></Image>
-        </View>
-        <View className=' h-12 flex flex-row items-center justify-start gap-2'>
-            <View className='flex flex-row items-start justify-start'>
-            <Image source={images.profile1} className='w-8 h-8 rounded-full'></Image>
-            <Image source={images.profile2} className={listenerImageClass}></Image>
-            <Image source={images.profile3} className={listenerImageClass}></Image>
-            <Image source={images.profile4} className={listenerImageClass}></Image>
-            <Image source={images.profile5} className={listenerImageClass}></Image>
-            </View>
-            <Text className='text-white font-MonMedium'>+3k <Text className='text-secondary font-MonRegular text-sm'>listening</Text></Text>
-        </View>
-        <View className='border border-white h-12'>
-            
-        </View>
+    <View className="flex-col gap-2 mt-2 w-full">
+      {/* LIVE LABEL (SHOUT) */}
+      <View className="flex-row items-center gap-2 px-1">
+        <LivePulse />
+        <Text className="text-xs font-semibold tracking-wide text-cyan-400">
+          LIVE
+        </Text>
       </View>
-    </View>
-  )
-}
 
-export default Livecard
+      {/* CARD */}
+      <Pressable className="w-full rounded-xl bg-[#1E4D5F] px-3 py-3">
+        {/* TOP SECTION */}
+        <View className="flex-row justify-between items-start">
+          <View className="flex-row gap-4 flex-1">
+            {/* COVER */}
+            <CreatorCover
+              creators={[
+                images.profile1,
+                images.profile2,
+                images.profile3,
+                images.profile4, // ignored if >3
+              ]}
+            />
+
+            {/* TITLE + META */}
+            <View className="flex-1">
+              <Text
+                numberOfLines={2}
+                className="font-MonBold text-textPrimary text-lg"
+              >
+                Holy Fire (Live) radio
+              </Text>
+
+               <LiveChannelName />
+
+              <View className="flex-row items-center gap-2 mt-1">
+                <Text className={timeClass}>Pod</Text>
+                <Text className={timeClass}>•</Text>
+                <Text className={timeClass}>52:27 mins</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* MENU */}
+          <Image source={icons.menu} className="w-6 h-6 opacity-80" />
+        </View>
+
+        {/* LISTENERS (WHISPER) */}
+        <View className="flex-row items-center gap-2 mt-4">
+          <View className="flex-row items-center">
+            <Image source={images.profile1} className="w-8 h-8 rounded-full" />
+            <Image source={images.profile2} className={listenerImageClass} />
+            <Image source={images.profile3} className={listenerImageClass} />
+            <Image source={images.profile4} className={listenerImageClass} />
+            <Image source={images.profile5} className={listenerImageClass} />
+          </View>
+
+          <Text className="text-textPrimary font-MonMedium">
+            +3.8k{" "}
+            <Text className="text-secondary font-MonRegular text-sm">
+              listening
+            </Text>
+          </Text>
+        </View>
+
+        {/* ACTION AREA (WHISPER, NOT SHOUT) */}
+        <View className="mt-4 h-12 rounded-lg border border-white/10 flex-row items-center justify-center">
+          <Text className="text-textPrimary font-MonMedium">
+            Tap to join live
+          </Text>
+        </View>
+      </Pressable>
+    </View>
+  );
+};
+
+export default Livecard;

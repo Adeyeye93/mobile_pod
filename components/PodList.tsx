@@ -1,10 +1,13 @@
-import { View, Text, Image, TouchableOpacity, Pressable } from 'react-native'
+import { View, Text, Image } from 'react-native'
 import React from 'react'
 import { images } from '@/constants/image'
-import { icons } from '@/constants/icons';
+import {  } from '@/constants/icons';
+import PlayPauseButton from './playPauseButton';
 
 let timeClass = 'text-textSecondary font-MonRegular text-[11.5px]';
-let Comp = () => {
+let Comp = ({Playing, Completed}: {Playing: boolean, Completed: boolean}) => {
+
+  
     return (
       <View className='w-full h-40 flex flex-row justify-between items-center gap-4'>
         <View className='w-40 h-full rounded-[28px] overflow-hidden'>
@@ -17,37 +20,18 @@ let Comp = () => {
             <Text className={timeClass}>|</Text>
             <Text className={timeClass}>52:27 mins</Text>
           </View>
-          <View className='w-full h-14  flex flex-row items-center '>
-            <View className='flex-1 flex flex-row items-center justify-start gap-4'>
-              <TouchableOpacity 
-                  onPress={() => console.log('Button Pressed')}
-                  className='bg-primary w-24 rounded-full h-10 flex flex-row items-center justify-center gap-2'
-                >
-                  <Image source={icons.play} className='h-4 w-4' />
-                  <Text className='text-white font-MonMedium leading-10'>
-                    Play
-                  </Text>
-                </TouchableOpacity>
-                <Pressable onPress={() => console.log('Button Pressed')}>
-                  <Image source={icons.podAction} className='h-6 w-6' />
-                </Pressable>
-                <Pressable onPress={() => console.log('Button Pressed')}>
-                  <Image source={icons.download} className='h-6 w-6' />
-                </Pressable>
-            </View>
-            <Image source={icons.menu} className='h-6 w-6'></Image>
-          </View>
+          <PlayPauseButton Playing={Playing} Completed={Completed}/>
         </View>
       </View>
     )
 }
 
-const PodList = () => {
+const PodList = ({Playing, Completed}: {Playing: boolean, Completed: boolean}) => {
   return (
     <View className='w-full h-fit flex flex-col justify-start items-start mt-5 gap-6'>
-      <Comp />
-      <Comp />
-      <Comp />
+      <Comp Playing={Playing} Completed={Completed}/>
+      <Comp Playing={Playing} Completed={Completed}/>
+      <Comp Playing={Playing} Completed={Completed}/>
     </View>
   )
 }

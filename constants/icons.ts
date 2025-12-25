@@ -14,6 +14,7 @@ import podAction from "@/assets/icons/podAction.png";
 import downloaded from "@/assets/icons/downloaded.png";
 import pause from "@/assets/icons/pause.png";
 import download from "@/assets/icons/download.png";
+import finished from "@/assets/icons/finished.png"
 
 export const icons = {
   home,
@@ -31,5 +32,6 @@ export const icons = {
   podAction,
   downloaded,
   pause,
-  download
+  download,
+  finished
 };

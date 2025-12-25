@@ -10,18 +10,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "#181a20",
         icon: "#A7A7A7",
+        liveOne: "#1E4D5F",
         primary: "#4169e1",
         secondary: "#03c275",
-        textPrimary: "#FFFFFF",
+        background: "#181a20",
+        textPrimary: "#E4E7EC",
         textSecondary: "#E0E0E0",
       },
       fontFamily: {
         MonThin: ["thin"],
-        MonRegular: ["regular"],
-        MonMedium: ["medium"],
         MonBold: ["bold"],
+        MonMedium: ["medium"],
+        MonRegular: ["regular"],
       },
     },
   },
