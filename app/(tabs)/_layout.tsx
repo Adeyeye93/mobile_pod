@@ -26,7 +26,7 @@ const _layout = () => {
    <Tabs screenOptions={{ tabBarShowLabel: false, tabBarStyle: { 
     height: 85,
     paddingHorizontal: 25,
-    backgroundColor: '#1F222A',
+    backgroundColor: '#181a20',
     borderTopWidth: 0,
     display: 'flex',
     alignItems: 'center',

@@ -6,6 +6,14 @@ import profile from "@/assets/icons/profile.png";
 import profileH from "@/assets/icons/profile-h.png";
 import discover from "@/assets/icons/discover.png";
 import discoverH from "@/assets/icons/discover-h.png";
+import notification from "@/assets/icons/notifications.png";
+import podlive from "@/assets/icons/podlive.png";
+import play from "@/assets/icons/play.png";
+import menu from "@/assets/icons/menu.png";
+import podAction from "@/assets/icons/podAction.png";
+import downloaded from "@/assets/icons/downloaded.png";
+import pause from "@/assets/icons/pause.png";
+import download from "@/assets/icons/download.png";
 
 export const icons = {
   home,
@@ -16,4 +24,12 @@ export const icons = {
   profileH,
   discover,
   discoverH,
+  notification,
+  podlive,
+  play,
+  menu,
+  podAction,
+  downloaded,
+  pause,
+  download
 };
