@@ -19,12 +19,16 @@ import SectionHeader from "@/components/SectionHeader";
 import SecondHeader from "@/components/SecondHeader";
 import Livecard from "@/components/livecard";
 import { PlayerProvider } from "@/context/PlayerContext";
+import { useRouter } from "expo-router";
+
 
 
 let SectionTopLevelClass = 'flex-1 h-fit mt-8'
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function Index() {
+  const router = useRouter();
+
   const [fontsLoaded, fontError] = useFonts({
     'bold': require('../../assets/fonts/Montserrat-Bold.ttf'),
     'medium': require('../../assets/fonts/Montserrat-Medium.ttf'),
@@ -41,6 +45,7 @@ export default function Index() {
   if (!fontsLoaded && !fontError) {
     return null;
   }
+  
 
   return (
     <PlayerProvider>
@@ -59,8 +64,7 @@ export default function Index() {
           </View>
           <Pressable
             onPress={() =>
-              // Handle notification press
-              console.log("Notification Pressed")
+             router.push('/home/notification')
             }
           >
             <Image source={icons.notification} className="w-7 h-7" />
@@ -93,7 +97,7 @@ export default function Index() {
             </View>
           </ImageBackground>
           <View className={SectionTopLevelClass}>
-            <SectionHeader title="Subscriptions" action="See All" />
+            <SectionHeader title="Subscriptions" action="See All" actionRoute="/home/subscriptions" />
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -103,7 +107,7 @@ export default function Index() {
             </ScrollView>
           </View>
           <View className={SectionTopLevelClass}>
-            <SectionHeader title="New Updates" action="See All" />
+            <SectionHeader title="New Updates" action="See All" actionRoute="/home/New Updates" />
             <PodList Playing={false} Completed={false} />
           </View>
           <View className={SectionTopLevelClass}>

@@ -15,6 +15,11 @@ import downloaded from "@/assets/icons/downloaded.png";
 import pause from "@/assets/icons/pause.png";
 import download from "@/assets/icons/download.png";
 import finished from "@/assets/icons/finished.png"
+import backPage from "@/assets/icons/backPage.png"
+import topMenu from "@/assets/icons/topMenu.png"
+import markAsDone from "@/assets/icons/done.png"
+import share from "@/assets/icons/share.png"
+import link from "@/assets/icons/link.png"
 
 export const icons = {
   home,
@@ -33,5 +38,10 @@ export const icons = {
   downloaded,
   pause,
   download,
-  finished
+  finished,
+  backPage,
+  topMenu,
+  markAsDone,
+  share,
+  link,
 };

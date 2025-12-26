@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, Image, Pressable } from "react-native";
 import { useState } from "react";
 import { icons } from "@/constants/icons";
+import DropdownWrapper from "./dropdown";
 
 const PlayPauseButton = ({Playing, Completed}: {Playing: boolean, Completed: boolean}) => {
   const [isPlaying, setIsPlaying] = useState(Playing);
@@ -34,7 +35,13 @@ const PlayPauseButton = ({Playing, Completed}: {Playing: boolean, Completed: boo
             <Image source={icons.download} className="h-6 w-6" />
           </Pressable>
         </View>
-        <Image source={icons.menu} className="h-6 w-6"></Image>
+        <DropdownWrapper
+          options={["Share", "Mark as Done"]}
+          iconPaths={[icons.share, icons.markAsDone]}
+          onSelect={(value) => console.log(value)}
+        >
+          <Image source={icons.menu} className="h-6 w-6"></Image>
+        </DropdownWrapper>
       </View>
     );
   } else {
@@ -48,7 +55,7 @@ const PlayPauseButton = ({Playing, Completed}: {Playing: boolean, Completed: boo
             <Image
               source={isPlaying ? icons.pause : icons.play}
               className="h-4 w-4"
-              tintColor='#03c275'
+              tintColor="#03c275"
             />
             <Text className="text-secondary font-MonMedium leading-10 text-sm">
               Completed
@@ -61,7 +68,13 @@ const PlayPauseButton = ({Playing, Completed}: {Playing: boolean, Completed: boo
             <Image source={icons.download} className="h-6 w-6" />
           </Pressable>
         </View>
-        <Image source={icons.menu} className="h-6 w-6"></Image>
+        <DropdownWrapper
+          options={["Share", "Mark as Done"]}
+          iconPaths={[icons.share, icons.markAsDone]}
+          onSelect={(value) => console.log(value)}
+        >
+          <Image source={icons.menu} className="h-6 w-6"></Image>
+        </DropdownWrapper>
       </View>
     );
   }
