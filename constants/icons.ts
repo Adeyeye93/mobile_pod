@@ -20,6 +20,18 @@ import topMenu from "@/assets/icons/topMenu.png"
 import markAsDone from "@/assets/icons/done.png"
 import share from "@/assets/icons/share.png"
 import link from "@/assets/icons/link.png"
+import subscribe from "@/assets/icons/subscribe.png"
+import subscribed from "@/assets/icons/subscribed.png";
+import shareH from "@/assets/icons/share-h.png"
+import internet from "@/assets/icons/internet.png";
+import sort from "@/assets/icons/sort.png";
+import rss from "@/assets/icons/rss.png";
+import report from "@/assets/icons/report.png";
+import selected from "@/assets/icons/selected.png";
+import hide from "@/assets/icons/hide.png";
+import reveal from "@/assets/icons/reveal.png";
+import save from "@/assets/icons/save.png";
+import saved from "@/assets/icons/saved.png";
 
 export const icons = {
   home,
@@ -44,4 +56,16 @@ export const icons = {
   markAsDone,
   share,
   link,
+  subscribe,
+  subscribed,
+  shareH,
+  internet,
+  sort,
+  rss,
+  report,
+  selected,
+  hide,
+  reveal,
+  save,
+  saved,
 };

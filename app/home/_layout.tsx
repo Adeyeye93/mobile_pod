@@ -7,6 +7,7 @@ export default function _layout() {
       <Stack.Screen name="notification" options={{ headerShown: false }} />
       <Stack.Screen name="subscriptions" options={{ headerShown: false }} />
       <Stack.Screen name="[title]" options={{ headerShown: false }} />
+      <Stack.Screen name="author" options={{ headerShown: false }} />
     </Stack>
   );
 }
