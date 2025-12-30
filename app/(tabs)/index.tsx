@@ -24,13 +24,13 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function Index() {
   const router = useRouter();
-
   const [fontsLoaded, fontError] = useFonts({
     bold: require("../../assets/fonts/Montserrat-Bold.ttf"),
     medium: require("../../assets/fonts/Montserrat-Medium.ttf"),
     regular: require("../../assets/fonts/Montserrat-Regular.ttf"),
     thin: require("../../assets/fonts/Montserrat-Thin.ttf"),
   });
+
 
   useEffect(() => {
     if (fontsLoaded || fontError) {

@@ -1,11 +1,11 @@
 import { View, ScrollView } from "react-native";
-import React from "react";
 import { useLocalSearchParams } from "expo-router";
 import PageHead from "@/components/PageHead";
 import PodList from "@/components/PodList";
 
 const SectionDetails = () => {
   const { title } = useLocalSearchParams();
+
 
   return (
     <View className="flex-1 bg-background px-4">

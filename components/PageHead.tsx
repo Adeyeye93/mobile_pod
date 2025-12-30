@@ -36,20 +36,20 @@ const PageHead = ({
     }
   };
   return (
-    <View className="w-full p-2 flex flex-row items-center justify-between mt-16 pb-10">
-      <View className="flex flex-row items-center gap-6">
+    <View className="w-full p-2 flex flex-row items-center justify-between mt-16 pb-10 gap-6">
+      <View className="flex flex-row items-center gap-6 flex-1">
         <Pressable
           onPress={() => handleBack()}
         >
           <Image source={icons.backPage} className="w-7 h-7" />
         </Pressable>
-        <View>
-          <Text className="text-textPrimary font-MonBold text-2xl">
+        <View className="flex-1">
+          <Text numberOfLines={1} className="text-textPrimary font-MonBold text-2xl">
             {title}
           </Text>
         </View>
       </View>
-      <View className="flex flex-row items-center gap-7 justify-end">
+      <View className="flex w-fit h-full flex-row items-center gap-7 justify-end">
         {has_link && (
           <Pressable onPress={() => ref.current?.expand()}>
             <Image source={icons.link} className="w-7 h-7" />

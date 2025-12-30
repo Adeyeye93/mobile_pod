@@ -6,6 +6,7 @@ import PageHead from "@/components/PageHead";
 import Timer from "@/components/author/timer";
 import PlayPauseButton from "@/components/playPauseButton";
 import EpisodeDescription from "@/components/author/podcast/Description";
+import { images } from "@/constants/image";
 
 const Episode = () => {
   return (
@@ -15,7 +16,7 @@ const Episode = () => {
         iconsList={[icons.share, icons.rss, icons.report]}
         dropdownList={["Share", "View RSS feed", "Report"]}
       />
-      <Head />
+      <Head imageUrl={images.pod4} title="The Jordan Steve Show" />
       <View className="w-full h-fit flex flex-col justify-start items-start gap-4 px-2">
         <Timer />
         <Text

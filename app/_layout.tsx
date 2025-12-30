@@ -6,6 +6,8 @@ import { Stack } from "expo-router";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "./globals.css";
+import { MiniPlayerProvider } from "@/context/MiniPlayerContext";
+import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
 
 function RootLayoutContent() {
   const { isSheetOpen, isRSSLinkOpen } = useUI();
@@ -13,12 +15,13 @@ function RootLayoutContent() {
   return (
     <>
       <View className="flex-1">
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="home" options={{ headerShown: false }} />
-        </Stack>
-        {!isSheetOpen && !isRSSLinkOpen && <MiniPlayer />}
-
+        <MiniPlayerProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="home" options={{ headerShown: false }} />
+          </Stack>
+          {!isSheetOpen && !isRSSLinkOpen && <MiniPlayer />}
+        </MiniPlayerProvider>
         {!isRSSLinkOpen && <RssLink />}
 
         <SortFilterE />
@@ -29,14 +32,16 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SortFilterProvider>
-        <UIProvider>
-          <RssLinkProvider>
-            <RootLayoutContent />
-          </RssLinkProvider>
-        </UIProvider>
-      </SortFilterProvider>
-    </GestureHandlerRootView>
+    <AudioPlayerProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SortFilterProvider>
+          <UIProvider>
+            <RssLinkProvider>
+              <RootLayoutContent />
+            </RssLinkProvider>
+          </UIProvider>
+        </SortFilterProvider>
+      </GestureHandlerRootView>
+    </AudioPlayerProvider>
   );
 }

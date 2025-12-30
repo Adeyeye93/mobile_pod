@@ -32,6 +32,19 @@ import hide from "@/assets/icons/hide.png";
 import reveal from "@/assets/icons/reveal.png";
 import save from "@/assets/icons/save.png";
 import saved from "@/assets/icons/saved.png";
+import invite from "@/assets/icons/invite.png";
+import next from "@/assets/icons/next.png";
+import playBack from "@/assets/icons/playBack.png";
+import playfarward from "@/assets/icons/playfarward.png";
+import prev from "@/assets/icons/prev.png";
+import speedPerfomance from "@/assets/icons/speedPermance.png";
+import timer from "@/assets/icons/timer.png";
+
+
+
+
+
+
 
 export const icons = {
   home,
@@ -68,4 +81,11 @@ export const icons = {
   reveal,
   save,
   saved,
+  invite,
+  next,
+  prev,
+  playBack,
+  playfarward,
+  speedPerfomance,
+  timer,
 };

@@ -4,31 +4,32 @@ import { icons } from '@/constants/icons';
 import { images } from '@/constants/image';
 type Props = {
     authorDetails?: boolean;
+    Description?: string;
+    imageUrl?: any;
+    title?: string;
+    podcastsCount?: string;
+  }
 
-}
-
-const Head = ({ authorDetails }: Props) => {
+const Head = ({ authorDetails, Description, imageUrl, title, podcastsCount }: Props) => {
        const [expanded, setExpanded] = useState(false);
        const [subscribed, setSubscribed] = useState(false);
 
-       const fullText =
-         "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam  wffw wflf wf wf fw flf wf w fwf wf ";
 
   return (
     <View className="w-full h-fit flex justify-between items-center flex-col">
       <View className="h-52 w-full flex flex-row items-center justify-between">
         <View className="w-36 h-36 rounded-[20px] overflow-hidden ">
-          <Image source={images.pod1} className="h-full w-full object-cover" />
+          <Image source={imageUrl} className="h-full w-full object-cover" />
         </View>
         <View className="flex-1 h-40 flex flex-col items-start justify-between p-3">
           <Text
             numberOfLines={1}
             className="text-textPrimary font-MonBold text-xl"
           >
-            The Breakfast Club
+            {title}
           </Text>
           <Text className="text-textSecondary text-sm font-MonRegular">
-            120k Podcasts
+            {podcastsCount} Podcasts
           </Text>
           <View className="w-full h-16 flex-row items-center justify-start gap-4">
             {authorDetails && (
@@ -66,7 +67,7 @@ const Head = ({ authorDetails }: Props) => {
           numberOfLines={expanded ? 0 : 3}
           className="text-textSecondary text-sm leading-relaxed font-MonRegular"
         >
-          {fullText}
+          {Description}
         </Text>
       </Pressable>)}
     </View>
