@@ -7,10 +7,11 @@ import { useRssLink } from "./modals/RSSLink";
 import { useSortFilter } from "./modals/Sort";
 
 type PageHeadProps = {
-  title: string;
+  title?: string;
   has_link?: boolean;
   iconsList?: string[];
   dropdownList?: string[];
+  has_menu?: boolean;
 };
 
 
@@ -21,6 +22,7 @@ const PageHead = ({
   has_link,
   iconsList,
   dropdownList,
+  has_menu,
 }: PageHeadProps) => {
   const { ref } = useRssLink();
   const router = useRouter();
@@ -38,13 +40,14 @@ const PageHead = ({
   return (
     <View className="w-full p-2 flex flex-row items-center justify-between mt-16 pb-10 gap-6">
       <View className="flex flex-row items-center gap-6 flex-1">
-        <Pressable
-          onPress={() => handleBack()}
-        >
+        <Pressable onPress={() => handleBack()}>
           <Image source={icons.backPage} className="w-7 h-7" />
         </Pressable>
         <View className="flex-1">
-          <Text numberOfLines={1} className="text-textPrimary font-MonBold text-2xl">
+          <Text
+            numberOfLines={1}
+            className="text-textPrimary font-MonBold text-2xl"
+          >
             {title}
           </Text>
         </View>
@@ -55,13 +58,14 @@ const PageHead = ({
             <Image source={icons.link} className="w-7 h-7" />
           </Pressable>
         )}
-        <DropdownWrapper
+        {has_menu && ( <DropdownWrapper
           options={dropdownList ? dropdownList : ["Share"]}
           iconPaths={iconsList ? iconsList : [icons.share]}
           onSelect={(value) => console.log(value)}
         >
           <Image source={icons.topMenu} className="w-7 h-7" />
-        </DropdownWrapper>
+        </DropdownWrapper>)}
+       
       </View>
     </View>
   );

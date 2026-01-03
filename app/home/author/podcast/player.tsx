@@ -1,4 +1,4 @@
-import { View, Text, Button } from 'react-native'
+import { View } from 'react-native'
 import React from 'react'
 import PageHead from '@/components/PageHead'
 import Banner from '@/components/author/podcast/Banner'

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "pod_mobile",
+    "name": "POD",
     "slug": "pod_mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -58,7 +58,9 @@
             "interruptionModeAndroid": "duckOthers"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,

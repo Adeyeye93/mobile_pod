@@ -14,6 +14,12 @@ import profile3 from "@/assets/images/profile3.jpg"
 import profile4 from "@/assets/images/profile4.jpg"
 import profile5 from "@/assets/images/profile5.jpg"
 import pod from "@/assets/images/pod.jpg"
+import slide1 from "@/assets/images/onboard.png"
+import slide2 from "@/assets/images/onboard1.png"
+import slide3 from "@/assets/images/onboard2.png"
+
+
+
 
 
 export const images = {
@@ -32,5 +38,8 @@ export const images = {
   profile3,
   profile4,
   profile5,
-  pod
+  pod,
+  slide1,
+  slide2,
+  slide3
 };
