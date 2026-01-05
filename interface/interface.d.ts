@@ -26,3 +26,12 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
 }
 
+interface FlashMessageOptions {
+  message: string;
+  type?: "success" | "danger" | "info";
+  duration?: number; // ms
+}
+
+interface FlashMessageContextProps {
+  showMessage: (options: FlashMessageOptions) => void;
+}

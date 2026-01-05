@@ -4,10 +4,7 @@ import SectionHeader from "@/components/SectionHeader";
 import Livecard from "@/components/livecard";
 import Subscription from "@/components/subscription";
 import { icons } from "@/constants/icons";
-import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
 import {
   Dimensions,
   Image,
@@ -24,24 +21,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function Index() {
   const router = useRouter();
-  const [fontsLoaded, fontError] = useFonts({
-    bold: require("../../assets/fonts/Montserrat-Bold.ttf"),
-    medium: require("../../assets/fonts/Montserrat-Medium.ttf"),
-    regular: require("../../assets/fonts/Montserrat-Regular.ttf"),
-    thin: require("../../assets/fonts/Montserrat-Thin.ttf"),
-  });
-
-
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
-
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
-
+  
   return (
     <View className="flex-1 bg-background px-4">
       <View className="w-full p-2 flex flex-row items-center justify-between mt-12">

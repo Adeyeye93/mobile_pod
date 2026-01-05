@@ -39,14 +39,24 @@ import playfarward from "@/assets/icons/playfarward.png";
 import prev from "@/assets/icons/prev.png";
 import speedPerfomance from "@/assets/icons/speedPermance.png";
 import timer from "@/assets/icons/timer.png";
-
-
+import apple from "@/assets/icons/apple.png";
+import google from "@/assets/icons/goggle.png";
+import email from "@/assets/icons/email.png"
+import passwordKey from "@/assets/icons/passwordKey.png"
+import info_flash from "@/assets/icons/info_flash.png";
+import succ_flash from "@/assets/icons/succ_flash.png"
+import error_flash from "@/assets/icons/error_flash.png"
 
 
 
 
 
 export const icons = {
+  info_flash,
+  succ_flash,
+  error_flash,
+  passwordKey,
+  email,
   home,
   homeH,
   library,
@@ -88,4 +98,6 @@ export const icons = {
   playfarward,
   speedPerfomance,
   timer,
+  apple,
+  google
 };

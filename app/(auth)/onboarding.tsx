@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+console.log("API:", process.env.EXPO_PUBLIC_API_URL);
 
 const onboardingData = [
   {
@@ -45,9 +46,6 @@ export default function Onboarding() {
   const bgOpacity = useSharedValue(1);
   const textY = useSharedValue(0);
   const textOpacity = useSharedValue(1);
-
-    
-
 
   const slide = onboardingData[currentSlide];
 

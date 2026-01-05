@@ -2,6 +2,7 @@ import { getAuth, saveAuth, clearAuth } from "@/storage/authStorage";
 import { createContext, useContext, useEffect, useState } from "react";
 import { api } from "@/libs/api";
 
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function useAuth() {
@@ -45,23 +46,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(payload.user);
   };
 
-  const signUp = async (data: string[]) => {
-    const res = await api.post<AuthResponse>("/auth/register", data);
+  const signUp = async (data: any): Promise<void> => {
+    try {
+      const res = await api.post<AuthResponse>("/auth/register", data);
 
-    const payload = {
-      user: res.data.user,
-      accessToken: res.data.token,
-      refreshToken: res.data.refresh,
-    };
+      const payload = {
+        user: res.data.user,
+        accessToken: res.data.token,
+        refreshToken: res.data.refresh,
+      };
 
-    await saveAuth(payload);
-    setUser(payload.user);
+      await saveAuth(payload);
+      setUser(payload.user);
+    } catch (err: any) {
+      throw err;
+    }
   };
 
   const signOut = async () => {
     await clearAuth();
     setUser(null);
   };
+
 
   return (
     <AuthContext.Provider
@@ -78,3 +84,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   );
 }
+

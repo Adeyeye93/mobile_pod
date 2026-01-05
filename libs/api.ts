@@ -38,10 +38,16 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry
-    ) {
+    // 422 Validation error - expected, not a server issue
+    if (error.response?.status === 422) {
+      return Promise.reject({
+        type: "validation",
+        errors: error.response.data.errors,
+      });
+    }
+
+    // 401 - Token expired, try refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -57,10 +63,9 @@ api.interceptors.response.use(
       try {
         const refreshToken = await AsyncStorage.getItem("refresh_token");
 
-        const res = await axios.post(
-          `${API_BASE_URL}/auth/refresh`,
-          { refresh_token: refreshToken }
-        );
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          refresh_token: refreshToken,
+        });
 
         const { access_token, refresh_token } = res.data;
 
@@ -72,6 +77,7 @@ api.interceptors.response.use(
         api.defaults.headers.Authorization = `Bearer ${access_token}`;
         processQueue(null, access_token);
 
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
@@ -82,6 +88,11 @@ api.interceptors.response.use(
       }
     }
 
-    return Promise.reject(error);
+    // Other server/network errors
+    return Promise.reject({
+      type: "server",
+      message: error.message || "Something went wrong",
+      status: error.response?.status,
+    });
   }
 );
