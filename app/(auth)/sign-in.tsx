@@ -35,11 +35,14 @@ export default function SignIn() {
       // Navigate to home or next screen
       // router.push("/(app)/home");
     } catch (err: any) {
+      console.log(err)
+      if (err.type === "auth") {
       show({
         title: "Error",
-        message: err.message || "Failed to sign in",
+        message: err.message,
         type: "danger",
       });
+    }
     } finally {
       setIsLoading(false);
     }

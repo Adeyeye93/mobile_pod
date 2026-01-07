@@ -21,7 +21,26 @@ export async function getAuth(): Promise<StoredAuth | null> {
   }
 }
 
+export async function updateAuth(updates: Partial<StoredAuth>) {
+  try {
+    const current = await getAuth();
+    if (!current) {
+      throw new Error("No auth session found");
+    }
+    
+    const updated = {
+      ...current,
+      ...updates,
+    };
+    
+    await saveAuth(updated);
+    return updated;
+  } catch (error) {
+    console.log("Error updating auth:", error);
+    throw error;
+  }
+}
+
 export async function clearAuth() {
   await SecureStore.deleteItemAsync(KEY);
 }
-

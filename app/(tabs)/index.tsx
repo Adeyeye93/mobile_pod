@@ -1,125 +1,84 @@
-import PodList from "@/components/PodList";
-import SecondHeader from "@/components/SecondHeader";
-import SectionHeader from "@/components/SectionHeader";
-import Livecard from "@/components/livecard";
-import Subscription from "@/components/subscription";
 import { icons } from "@/constants/icons";
 import { useRouter } from "expo-router";
 import {
-  Dimensions,
   Image,
-  ImageBackground,
   Pressable,
   ScrollView,
-  Text,
   View,
 } from "react-native";
 import { images } from "../../constants/image";
+import { FilterPill } from "@/components/fielterpill";
+import { useState } from "react";
+import AllFeed from "@/components/page/AllFeed";
+import Live from "@/components/page/Live";
 
-let SectionTopLevelClass = "flex-1 h-fit mt-8";
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function Index() {
   const router = useRouter();
-  
+    const [active, setActive] = useState<FeedFilter>("all");
+
+  const renderContent = () => {
+  switch (active) {
+    case "all":
+      return <AllFeed />;
+    case "live":
+      return <Live />; 
+    case "episodes":
+      return <View />;
+    case "following":
+      return <View />;
+    case "trending":
+      return <View />;
+    default:
+      return null;
+  }
+};
+
   return (
-    <View className="flex-1 bg-background px-4">
+      
+
+    <View className="flex-1 bg-background px-4 mb-16">
       <View className="w-full p-2 flex flex-row items-center justify-between mt-12">
-        <View className="flex flex-row items-center gap-6">
-          <Image source={images.profile} className="h-12 w-12 rounded-full" />
-          <View>
-            <Text className="text-textSecondary font-MonRegular">
-              Good Morning
-            </Text>
-            <Text className="text-textPrimary font-MonBold">
-              Andrew Johnson
-            </Text>
+        <View className="flex-1 flex-row items-center h-full gap-6">
+          <Image source={images.profile} className="h-9 w-9 rounded-full" />
+          <View className="flex-1 h-full flex-row items-center justify-start gap-3">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingHorizontal: 16,
+                gap: 10,
+              }}
+            >
+              <FilterPill
+                label="All"
+                value="all"
+                active={active === "all"}
+                onPress={() => setActive("all")}
+              />
+
+              <FilterPill
+                label="Live"
+                value="live"
+                active={active === "live"}
+                isLive
+                onPress={() => setActive("live")}
+              />
+
+              <FilterPill
+                label="Episode"
+                value="episodes"
+                active={active === "episodes"}
+                onPress={() => setActive("episodes")}
+              />
+            </ScrollView>
           </View>
         </View>
         <Pressable onPress={() => router.push("/home/notification")}>
           <Image source={icons.notification} className="w-7 h-7" />
         </Pressable>
       </View>
-      <ScrollView
-        className="flex-1"
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 10, minHeight: "100%" }}
-      >
-        {/* Main Content Goes Here */}
-        <ImageBackground
-          source={images.banner}
-          className="w-full h-48 rounded-[30px] mt-8 overflow-hidden pl-5 flex-row justify-start items-start"
-          resizeMode="cover"
-        >
-          <Image
-            source={images.banner1}
-            className="absolute top-0 right-0 h-full w-[18rem]"
-          />
-          <View className="flex w-2/3 mt-10">
-            <Text className="text-white font-MonBold text-xl">
-              Tune In. Connect. Listen
-            </Text>
-            <Text className="text-white font-MonRegular text-sm mt-5 w-full">
-              Stream live audio from your favorite creators and join the
-              conversation today!
-            </Text>
-          </View>
-        </ImageBackground>
-        <View className={SectionTopLevelClass}>
-          <SectionHeader
-            title="Subscriptions"
-            action="See All"
-            actionRoute="/home/subscriptions"
-          />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="mt-5"
-          >
-            <Subscription />
-          </ScrollView>
-        </View>
-        <View className={SectionTopLevelClass}>
-          <SectionHeader
-            title="New Updates"
-            action="See All"
-            actionRoute="/home/New Updates"
-          />
-          <PodList Playing={false} Completed={false} />
-        </View>
-        <View className={SectionTopLevelClass}>
-          <SecondHeader topic="Becuase you listened to" channel="Ted Talk" />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="mt-5"
-          >
-            <Subscription />
-          </ScrollView>
-        </View>
-
-        <View className={SectionTopLevelClass}>
-          <ScrollView
-            horizontal
-            snapToInterval={SCREEN_WIDTH * 0.9 + 16}
-            decelerationRate="fast"
-            showsHorizontalScrollIndicator={false}
-          >
-            <View style={{ width: SCREEN_WIDTH * 0.9, marginRight: 10 }}>
-              <Livecard />
-            </View>
-
-            <View style={{ width: SCREEN_WIDTH * 0.9, marginRight: 10 }}>
-              <Livecard />
-            </View>
-
-            <View style={{ width: SCREEN_WIDTH * 0.9 }}>
-              <Livecard />
-            </View>
-          </ScrollView>
-        </View>
-      </ScrollView>
+      {renderContent()}
     </View>
   );
 }

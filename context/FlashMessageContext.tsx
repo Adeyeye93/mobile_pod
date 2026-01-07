@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  Image
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -52,9 +53,10 @@ function Icon({ type }: { type: ToastType }) {
     type === "success" ? "#0ACF83" : type === "danger" ? "#FF5C5C" : "#3EA6FF";
   return (
     <View style={[styles.icon, { backgroundColor: color }]}>
-      <Text style={styles.iconText}>
-        {type === "success" ? "✔" : type === "danger" ? "✕" : "i"}
-      </Text>
+      <Image
+        style={styles.iconText}
+        source={type === "success" ? icons.succ_flash : type === "danger" ? icons.error_flash : icons.info_flash}
+      />
     </View>
   );
 }
@@ -247,8 +249,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   iconText: {
-    color: "#fff",
-    fontWeight: "700",
+    tintColor: "#fff",
+    width: 25,
+    height: 25
   },
   textContainer: {
     flex: 1,

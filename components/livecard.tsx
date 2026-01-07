@@ -5,34 +5,61 @@ import { LivePulse } from "./LivePulse";
 import CreatorCover from "./CreatorCover";
 import LiveChannelName from "./LiveChannelName";
 
+
 const timeClass = "text-textSecondary font-MonMedium text-sm";
+const creators = [
+  images.profile1,
+  images.profile2,
+  images.profile3,
+  images.profile4, // ignored if >3
+];
 
 const listenerImageClass = "w-8 h-8 rounded-full -ml-3 border border-[#1E4D5F]";
+interface LiveCardProps {
+   minimal?: boolean
+   IsSuggested?: boolean
+   Suggestion?: string
+}
 
-const Livecard = () => {
+const Livecard = ({ minimal, IsSuggested, Suggestion }: LiveCardProps) => {
+
   return (
     <View className="flex-col gap-2 mt-2 w-full">
       {/* LIVE LABEL (SHOUT) */}
-      <View className="flex-row items-center gap-2 px-1">
-        <LivePulse />
-        <Text className="text-xs font-semibold tracking-wide text-cyan-400">
-          LIVE
-        </Text>
-      </View>
+      {minimal ? (
+        <View className="flex-row items-center gap-2 px-1"></View>
+      ) : (
+        <View className="flex-row items-center gap-2 px-1">
+          <LivePulse />
+          <Text className="text-xs font-semibold tracking-wide text-cyan-400">
+            LIVE
+          </Text>
+        </View>
+      )}
 
       {/* CARD */}
       <Pressable className="w-full rounded-xl bg-[#1E4D5F] px-3 py-3">
+        {IsSuggested ? (
+          <Text className="text-xs font-semibold tracking-wide text-cyan-400 mb-4">
+            {Suggestion ? (
+              <Text className="text-xs font-semibold tracking-wide text-cyan-400 uppercase">
+                {Suggestion}
+              </Text>
+            ) : (
+              <Text className="text-xs font-semibold tracking-wide text-cyan-400">
+                SUGGESTED BY POD
+              </Text>
+            )}
+          </Text>
+        ) : (
+          ""
+        )}
         {/* TOP SECTION */}
         <View className="flex-row justify-between items-start">
           <View className="flex-row gap-4 flex-1">
             {/* COVER */}
             <CreatorCover
-              creators={[
-                images.profile1,
-                images.profile2,
-                images.profile3,
-                images.profile4, // ignored if >3
-              ]}
+              creators={creators}
             />
 
             {/* TITLE + META */}
@@ -44,7 +71,7 @@ const Livecard = () => {
                 Holy Fire (Live) radio
               </Text>
 
-               <LiveChannelName />
+              <LiveChannelName />
 
               <View className="flex-row items-center gap-2 mt-1">
                 <Text className={timeClass}>Pod</Text>
@@ -77,11 +104,15 @@ const Livecard = () => {
         </View>
 
         {/* ACTION AREA (WHISPER, NOT SHOUT) */}
-        <View className="mt-4 h-12 rounded-lg border border-white/10 flex-row items-center justify-center">
-          <Text className="text-textPrimary font-MonMedium">
-            Tap to join live
-          </Text>
-        </View>
+        {minimal ? (
+          ""
+        ) : (
+          <View className="mt-4 h-12 rounded-lg border border-white/10 flex-row items-center justify-center">
+            <Text className="text-textPrimary font-MonMedium">
+              Tap to join live
+            </Text>
+          </View>
+        )}
       </Pressable>
     </View>
   );

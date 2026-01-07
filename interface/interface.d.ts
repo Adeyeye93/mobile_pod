@@ -35,3 +35,33 @@ interface FlashMessageOptions {
 interface FlashMessageContextProps {
   showMessage: (options: FlashMessageOptions) => void;
 }
+
+interface Interest {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+}
+
+interface UserInterest {
+  id: number;
+  user_id: number;
+  interest_id: number;
+  interest: Interest;
+}
+
+interface InterestContextType {
+  interests: Interest[];
+  userInterests: Interest[];
+  selectedInterestIds: number[];
+  hasInterest: boolean;
+  isInterestHydrated: boolean;
+  loading: boolean;
+  loadInterests: () => Promise<void>;
+  loadUserInterests: (userId: number) => Promise<void>;
+  toggleInterest: (interestId: number) => void;
+  saveUserInterests: (userId: number) => Promise<boolean>;
+  clearUserInterests: (userId: number) => Promise<void>;
+}
+type FeedFilter = "all" | "live" | "episodes" | "following" | "trending";

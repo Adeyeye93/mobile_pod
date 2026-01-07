@@ -42,22 +42,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshToken: res.data.refresh,
     };
 
-    await saveAuth(payload);
+    console.log("signIn payload", payload);
+    await saveAuth(payload);;
     setUser(payload.user);
   };
 
   const signUp = async (data: any): Promise<void> => {
     try {
       const res = await api.post<AuthResponse>("/auth/register", data);
-
+      
       const payload = {
         user: res.data.user,
         accessToken: res.data.token,
         refreshToken: res.data.refresh,
       };
-
+      console.log("signUp payload", payload);
       await saveAuth(payload);
       setUser(payload.user);
+      
     } catch (err: any) {
       throw err;
     }

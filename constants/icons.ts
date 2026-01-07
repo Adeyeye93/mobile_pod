@@ -46,12 +46,16 @@ import passwordKey from "@/assets/icons/passwordKey.png"
 import info_flash from "@/assets/icons/info_flash.png";
 import succ_flash from "@/assets/icons/succ_flash.png"
 import error_flash from "@/assets/icons/error_flash.png"
+import plus from "@/assets/icons/plus.png"
+import minus from "@/assets/icons/minus.png"
 
 
 
 
 
 export const icons = {
+  plus,
+  minus,
   info_flash,
   succ_flash,
   error_flash,
