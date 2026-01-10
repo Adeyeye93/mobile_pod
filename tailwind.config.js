@@ -11,6 +11,7 @@ module.exports = {
     extend: {
       colors: {
         icon: "#A7A7A7",
+        modal: "#1f222b",
         liveOne: "#1E4D5F",
         primary: "#4169e1",
         secondary: "#03c275",

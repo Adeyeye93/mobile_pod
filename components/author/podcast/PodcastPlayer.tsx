@@ -5,16 +5,22 @@ import {
   Text,
   Image,
   PanResponder,
-  LayoutChangeEvent,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useAudio } from "@/context/AudioPlayerContext";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 
 interface PodcastPlayerProps {
   audioSource: any;
+  color: any
 }
 
-export default function PodcastPlayer({ audioSource }: PodcastPlayerProps) {
+
+export default function PodcastPlayer({ audioSource, color }: PodcastPlayerProps) {
   const { player, status, toggle, seekBy, setRate, rate } = useAudio();
 
   const barWidth = useRef(0);
@@ -23,13 +29,10 @@ export default function PodcastPlayer({ audioSource }: PodcastPlayerProps) {
   useEffect(() => {
     if (audioSource) {
       player.replace(audioSource);
-      player.play();
     }
   }, [audioSource]);
 
-  const onBarLayout = (e: LayoutChangeEvent) => {
-    barWidth.current = e.nativeEvent.layout.width;
-  };
+
 
   const seekToPosition = (x: number) => {
     if (!barWidth.current || !status.duration) return;
@@ -54,99 +57,141 @@ export default function PodcastPlayer({ audioSource }: PodcastPlayerProps) {
   const progressPercent =
     status.duration > 0 ? (status.currentTime / status.duration) * 100 : 0;
 
-  return (
-    <View className="w-full h-64 items-center gap-3">
-      {/* Seek bar */}
-      <View
-        onLayout={onBarLayout}
-        {...panResponder.panHandlers}
-        className="h-2 w-full bg-[#ffffff22] rounded-full relative"
-      >
-        <View
-          className="h-full bg-primary rounded-full"
-          style={{ width: `${progressPercent}%` }}
-        />
+  // Generate waveform data
+  const waveformBars = Array.from({ length: 60 }, () =>
+    Math.floor(Math.random() * 100)
+  );
 
-        <View
-          className="h-4 w-4 absolute -top-[4px] bg-primary rounded-full"
-          style={{ left: `${progressPercent}%`, marginLeft: -8 }}
-        />
+  return (
+    <View className="w-full gap-6">
+      {/* Waveform Visualization */}
+      <View
+        className="flex-row items-center justify-center gap-0.5 h-20"
+        {...panResponder.panHandlers}
+      >
+        {waveformBars.map((height, index) => (
+          <AnimatedBar
+            BarColor={color}
+            key={index}
+            height={height}
+            isPlayed={(index / waveformBars.length) * 100 < progressPercent}
+            onPress={() =>
+              seekToPosition((index / waveformBars.length) * barWidth.current)
+            }
+          />
+        ))}
       </View>
 
       {/* Time */}
-      <View className="flex-row justify-between w-full">
-        <Text className="text-sm text-textSecondary">
+      <View className="flex-row justify-between w-full px-2">
+        <Text
+          className="text-sm font-MonMedium"
+          style={{
+            color: color?.colorTwo.value,
+          }}
+        >
           {formatDuration(status.currentTime)}
         </Text>
-        <Text className="text-sm text-textSecondary">
+        <Text className="text-sm text-gray-400 font-MonMedium">
           {formatDuration(status.duration)}
         </Text>
       </View>
 
       {/* Controls */}
-      <View className="flex-row items-center gap-10 mt-6">
+      <View className="flex-row items-center justify-center gap-8 mt-4">
         <Pressable onPress={() => seekBy(-15)}>
-          <Image source={icons.prev} className="w-10 h-10" />
+          <Image source={icons.playBack} className="w-7 h-7" />
         </Pressable>
-        <Pressable onPress={() => seekBy(-15)}>
-          <Image source={icons.playBack} className="w-8 h-8" />
-        </Pressable>
+
         <Pressable
           onPress={toggle}
-          className="bg-primary w-16 h-16 rounded-full items-center justify-center"
+          className="bg-primary w-14 h-14 rounded-full items-center justify-center"
         >
           <Image
             source={status.playing ? icons.pause : icons.play}
-            className="w-10 h-10"
+            className="w-7 h-7"
           />
         </Pressable>
 
         <Pressable onPress={() => seekBy(15)}>
-          <Image source={icons.playfarward} className="w-8 h-8" />
-        </Pressable>
-        <Pressable onPress={() => seekBy(15)}>
-          <Image source={icons.next} className="w-10 h-10" />
+          <Image source={icons.playfarward} className="w-7 h-7" />
         </Pressable>
       </View>
-      <View className="flex-1  w-full flex-row flex items-center justify-evenly">
+
+      {/* Speed & More Options */}
+      <View className="flex-row justify-around items-center w-full">
         <Pressable
           onPress={() => {
-            const next = rate === 1 ? 1.25 : rate === 1.25 ? 1.5 : 1;
-            setRate(next);
+            const speeds = [1, 1.25, 1.5, 2];
+            const nextIndex = (speeds.indexOf(rate) + 1) % speeds.length;
+            setRate(speeds[nextIndex]);
           }}
-          className=""
+          className="items-center gap-1"
         >
-          <Image source={icons.speedPerfomance} className="w-8 h-8"></Image>
+          <Image source={icons.speedRate} className="w-6 h-6" />
+          <Text className="text-xs text-gray-400 font-MonRegular">{rate}x</Text>
         </Pressable>
-        <Pressable
-          onPress={() => {
-            const next = rate === 1 ? 1.25 : rate === 1.25 ? 1.5 : 1;
-            setRate(next);
-          }}
-          className=""
-        >
-          <Image source={icons.timer} className="w-8 h-8"></Image>
+
+        <Pressable className="items-center gap-1">
+          <Image source={icons.invite} className="w-6 h-6" />
+          <Text className="text-xs text-gray-400 font-MonRegular">Invite</Text>
         </Pressable>
-        <Pressable
-          onPress={() => {
-            const next = rate === 1 ? 1.25 : rate === 1.25 ? 1.5 : 1;
-            setRate(next);
-          }}
-          className=""
-        >
-          <Image source={icons.invite} className="w-8 h-8"></Image>
+
+        <Pressable className="items-center gap-1">
+          <Image source={icons.queue} className="w-6 h-6" />
+          <Text className="text-xs text-gray-400 font-MonRegular">Queue</Text>
         </Pressable>
-        <Pressable
-          onPress={() => {
-            const next = rate === 1 ? 1.25 : rate === 1.25 ? 1.5 : 1;
-            setRate(next);
-          }}
-          className=""
-        >
-          <Image source={icons.menu} className="w-8 h-8"></Image>
+
+        <Pressable className="items-center gap-1">
+          <Image source={icons.timer} className="w-6 h-6" />
+          <Text className="text-xs text-gray-400 font-MonRegular">Sleep</Text>
         </Pressable>
       </View>
     </View>
+  );
+}
+
+// Animated Bar Component
+function AnimatedBar({
+  BarColor,
+  height,
+  isPlayed,
+  onPress,
+}: {
+  BarColor: any;
+  height: number;
+  isPlayed: boolean;
+  onPress: () => void;
+}) {
+  const barHeight = useSharedValue(height);
+  const barColor = useSharedValue(isPlayed ? 1 : 0);
+
+  useEffect(() => {
+    barHeight.value = withTiming(Math.max(20, height), {
+      duration: 500,
+    });
+
+    barColor.value = withTiming(isPlayed ? 1 : 0, {
+      duration: 500,
+    });
+  }, [height, isPlayed]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: `${barHeight.value}%`,
+  }));
+
+  const colorStyle = useAnimatedStyle(() => ({
+    backgroundColor:
+      barColor.value === 1 ? `${BarColor?.colorTwo.value}` : "#E0E0E0",
+  }));
+
+  return (
+    <Pressable onPress={onPress} className="flex-1 items-center justify-end">
+      <Animated.View
+        style={[animatedStyle, colorStyle]}
+        className="w-full rounded-sm"
+      />
+    </Pressable>
   );
 }
 

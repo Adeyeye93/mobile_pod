@@ -25,9 +25,8 @@ const pageConfigs: Record<string, MiniPlayerConfig> = {
   "/discover": { isVisible: true, position: "bottom", offset: 85 },
   "/library": { isVisible: true, position: "bottom", offset: 85 },
   "/profile": { isVisible: true, position: "bottom", offset: 85 },
-  "/home/notification": { isVisible: true, position: "bottom", offset: 50 },
-  "/home/subscriptions": { isVisible: true, position: "bottom", offset: 50 },
-    "/home/author/podcast/player": { isVisible: false, position: "bottom", offset: 0 },
+  "/home/notification": { isVisible: true, position: "bottom", offset: 1 },
+  "/home/subscriptions": { isVisible: true, position: "bottom", offset: 1 },
   // Add more pages as needed
 };
 
@@ -40,16 +39,16 @@ const getConfigForRoute = (pathname: string): MiniPlayerConfig => {
 
   // Check pattern matches
   if (pathname.startsWith("/home/author/")) {
-    return { isVisible: true, position: "bottom", offset: 50 };
+    return { isVisible: true, position: "bottom", offset: 1 };
   }
 
   if (pathname.startsWith("/home/")) {
-    return { isVisible: true, position: "bottom", offset: 50 };
+    return { isVisible: true, position: "bottom", offset: 1 };
   }
 
 
   if (pathname.startsWith("/home/podcast/")) {
-    return { isVisible: true, position: "bottom", offset: 50 };
+    return { isVisible: true, position: "bottom", offset: 1 };
   }
 
   // Default fallback

@@ -7,7 +7,6 @@ export default function _layout() {
       <Stack.Screen name="podcast/[episode]" options={{ headerShown: false }} />
       <Stack.Screen
         options={{
-          presentation: "modal",
           headerShown: false,
         }}
         name="podcast/player"

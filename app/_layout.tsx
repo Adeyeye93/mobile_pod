@@ -13,12 +13,18 @@ import { useInterest, InterestProvider } from "@/context/InterestContext";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import PlayerBottomSheet, { PlayerProvider } from "@/components/modals/player";
+import { View, Text } from "react-native";
+import { CommentsSheetProvider, OptionsSheetProvider } from "@/context/CreateSheetContext";
+import Comments from "@/components/modals/Comments";
+import Options from "@/components/modals/Options";
+
 
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutContent() {
   const { isBootstrapping, user, isAuthenticated } = useAuth();
-  const { isSheetOpen, isRSSLinkOpen } = useUI();
+  const { isRSSLinkOpen } = useUI();
   const { hasInterest, loadUserInterests, isInterestHydrated } = useInterest();
   const router = useRouter();
 
@@ -29,20 +35,17 @@ function RootLayoutContent() {
     thin: require("@/assets/fonts/Montserrat-Thin.ttf"),
   });
 
-  // Handle interest redirect after auth
   useEffect(() => {
     if (isAuthenticated && user && !isBootstrapping) {
       loadUserInterests(user.id);
     }
   }, [isAuthenticated, user, isBootstrapping]);
 
-
-  // Redirect if no interests selected
   useEffect(() => {
     if (
       isAuthenticated &&
       user &&
-      isInterestHydrated && // 🔑 KEY FIX
+      isInterestHydrated &&
       !hasInterest &&
       !isBootstrapping &&
       fontsLoaded
@@ -58,7 +61,6 @@ function RootLayoutContent() {
     fontsLoaded,
   ]);
 
-
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
@@ -69,17 +71,22 @@ function RootLayoutContent() {
   if (isBootstrapping) return null;
 
   return (
-    <>
-      {/* ROUTES */}
-      <Slot />
+    <View className="flex-1">
+      {/* Main content */}
+      <View className="flex-1 relative z-0">
+        <MiniPlayer />
+        <Slot />
+      </View>
 
-      {/* GLOBAL UI LAYER */}
-      <MiniPlayerProvider>
-        {!isSheetOpen && !isRSSLinkOpen && <MiniPlayer />}
-      </MiniPlayerProvider>
+      {/* Modals rendered last so they're always on top */}
       {!isRSSLinkOpen && <RssLink />}
       <SortFilterE />
-    </>
+
+      {/* BottomSheet MUST be rendered last to always be on top */}
+      <PlayerBottomSheet />
+      <Comments />
+      <Options />
+    </View>
   );
 }
 
@@ -90,13 +97,21 @@ export default function RootLayout() {
         <AuthProvider>
           <InterestProvider>
             <AudioPlayerProvider>
-              <SortFilterProvider>
-                <UIProvider>
-                  <RssLinkProvider>
-                    <RootLayoutContent />
-                  </RssLinkProvider>
-                </UIProvider>
-              </SortFilterProvider>
+              <PlayerProvider>
+                <CommentsSheetProvider>
+                  <OptionsSheetProvider>
+                    <SortFilterProvider>
+                      <UIProvider>
+                        <RssLinkProvider>
+                          <MiniPlayerProvider>
+                            <RootLayoutContent />
+                          </MiniPlayerProvider>
+                        </RssLinkProvider>
+                      </UIProvider>
+                    </SortFilterProvider>
+                  </OptionsSheetProvider>
+                </CommentsSheetProvider>
+              </PlayerProvider>
             </AudioPlayerProvider>
           </InterestProvider>
         </AuthProvider>

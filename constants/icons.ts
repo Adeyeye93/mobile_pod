@@ -37,7 +37,7 @@ import next from "@/assets/icons/next.png";
 import playBack from "@/assets/icons/playBack.png";
 import playfarward from "@/assets/icons/playfarward.png";
 import prev from "@/assets/icons/prev.png";
-import speedPerfomance from "@/assets/icons/speedPermance.png";
+import speedRate from "@/assets/icons/speedRate.png";
 import timer from "@/assets/icons/timer.png";
 import apple from "@/assets/icons/apple.png";
 import google from "@/assets/icons/goggle.png";
@@ -48,12 +48,20 @@ import succ_flash from "@/assets/icons/succ_flash.png"
 import error_flash from "@/assets/icons/error_flash.png"
 import plus from "@/assets/icons/plus.png"
 import minus from "@/assets/icons/minus.png"
-
-
+import close_modal from "@/assets/icons/close_modal.png"
+import queue from "@/assets/icons/queue.png"
+import expand from "@/assets/icons/expand.png"
+import send from "@/assets/icons/send.png"
+import redirect from "@/assets/icons/redirect.png"
 
 
 
 export const icons = {
+  redirect,
+  send,
+  expand,
+  queue,
+  close_modal,
   plus,
   minus,
   info_flash,
@@ -100,7 +108,7 @@ export const icons = {
   prev,
   playBack,
   playfarward,
-  speedPerfomance,
+  speedRate,
   timer,
   apple,
   google

@@ -1,19 +1,23 @@
 import { View, Text, Pressable, Image } from "react-native";
 import { useState } from "react";
-import { useRouter } from "expo-router";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/image";
 import { useImageColors } from "@/hook/useImageColors";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { useAudio } from "@/context/AudioPlayerContext";
+import { usePlayer } from "./player";
 
 export default function MiniPlayer() {
-  const router = useRouter();
   const { config } = useMiniPlayer();
   const bannerImage = images.pod;
-const { status, toggle } = useAudio();
+  const { status, toggle } = useAudio();
   const [isSaved, setIsSaved] = useState(false);
   const colors = useImageColors(bannerImage);
+  const { ref } = usePlayer();
+
+    const progressPercent =
+      status.duration > 0 ? (status.currentTime / status.duration) * 100 : 0;
+
 
   if (!config.isVisible) {
     return null;
@@ -26,14 +30,19 @@ const { status, toggle } = useAudio();
 
   return (
     <Pressable
-      onPress={() => router.push("/home/author/podcast/player")}
-      className="absolute left-0 right-0 p-3 flex-row items-center justify-between w-full"
+      onPress={() => ref.current?.expand()}
+      className="absolute left-0 right-0 p-3 flex-row items-center justify-between w-full rounded-t-xl"
       style={{
-        zIndex: 40,
+        zIndex: 10,
         backgroundColor: colors?.colorThree.value,
-        ...positionStyles,
+        ...positionStyles
       }}
     >
+      <View className="h-1 rounded-full absolute top-0 left-3 bg-primary" style={{
+        width: `${progressPercent}%`
+      }}>
+
+      </View>
       {/* Podcast info */}
       <View className="flex-row items-center flex-1 gap-3">
         <Image source={bannerImage} className="w-12 h-12 rounded" />
@@ -64,11 +73,11 @@ const { status, toggle } = useAudio();
         </Pressable>
 
         <Pressable onPress={toggle}>
-  <Image
-    source={status.playing ? icons.pause : icons.play}
-    className="w-6 h-6"
-  />
-</Pressable>
+          <Image
+            source={status.playing ? icons.pause : icons.play}
+            className="w-6 h-6"
+          />
+        </Pressable>
       </View>
     </Pressable>
   );

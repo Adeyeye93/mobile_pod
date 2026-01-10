@@ -35,9 +35,7 @@ export default function Index() {
 };
 
   return (
-      
-
-    <View className="flex-1 bg-background px-4 mb-16">
+    <View className="flex-1 bg-background px-4 pb-16">
       <View className="w-full p-2 flex flex-row items-center justify-between mt-12">
         <View className="flex-1 flex-row items-center h-full gap-6">
           <Image source={images.profile} className="h-9 w-9 rounded-full" />
@@ -46,7 +44,7 @@ export default function Index() {
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{
-                paddingHorizontal: 16,
+                paddingHorizontal: 5,
                 gap: 10,
               }}
             >
@@ -74,8 +72,11 @@ export default function Index() {
             </ScrollView>
           </View>
         </View>
-        <Pressable onPress={() => router.push("/home/notification")}>
-          <Image source={icons.notification} className="w-7 h-7" />
+        <Pressable
+          onPress={() => router.push("/home/notification")}
+          className="bg-[#35383f] p-2 rounded-3xl"
+        >
+          <Image source={icons.notification} className="w-6 h-6" />
         </Pressable>
       </View>
       {renderContent()}

@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
-import { useRef, useState, createContext, useContext, useCallback } from "react";import { icons } from "@/constants/icons";
+import { useRef, useState, createContext, useContext, useCallback } from "react";
+import { icons } from "@/constants/icons";
 import Divider from "../divider";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useUI } from "@/context/UIContext";

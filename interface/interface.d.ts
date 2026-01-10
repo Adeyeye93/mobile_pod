@@ -65,3 +65,15 @@ interface InterestContextType {
   clearUserInterests: (userId: number) => Promise<void>;
 }
 type FeedFilter = "all" | "live" | "episodes" | "following" | "trending";
+
+interface SheetProps {
+  children: ReactNode;
+  context: React.Context<SheetContextType | null>;
+  snapPoints?: (number | string)[];
+  backgroundColor?: string;
+  borderTopLeftRadius?: number;
+  borderTopRightRadius?: number;
+  handleIndicatorColor?: string;
+  onClose?: () => void;
+  enablePanDownToClose?: boolean;
+}
