@@ -48,6 +48,13 @@ export const {
   SheetProvider: OptionsSheetProvider,
 } = createSheetContext();
 
+export const {
+  SheetContext: SearchSheetContext,
+  useSheetContext: useSearchSheet,
+  SheetProvider: SearchSheetProvider,
+} = createSheetContext();
+
+
 export function Sheet({
   children,
   context,
@@ -73,7 +80,6 @@ export function Sheet({
 
   const handleSheetChanges = useCallback(
     (index: number) => {
-      console.log("Sheet index:", index);
       setIsSheetOpen(index > 0);
     },
     [setIsSheetOpen]

@@ -2,7 +2,7 @@ import MiniPlayer from "@/components/modals/MiniPlayer";
 import RssLink, { RssLinkProvider } from "@/components/modals/RSSLink";
 import SortFilterE, { SortFilterProvider } from "@/components/modals/Sort";
 import { UIProvider, useUI } from "@/context/UIContext";
-import { Slot, useRouter } from "expo-router";
+import { Slot, useRouter, Redirect } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "./globals.css";
 import { MiniPlayerProvider } from "@/context/MiniPlayerContext";
@@ -14,10 +14,11 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import PlayerBottomSheet, { PlayerProvider } from "@/components/modals/player";
-import { View, Text } from "react-native";
-import { CommentsSheetProvider, OptionsSheetProvider } from "@/context/CreateSheetContext";
+import { View } from "react-native";
+import { CommentsSheetProvider, OptionsSheetProvider, SearchSheetProvider } from "@/context/CreateSheetContext";
 import Comments from "@/components/modals/Comments";
 import Options from "@/components/modals/Options";
+import Search from "@/components/modals/Search";
 
 
 SplashScreen.preventAutoHideAsync();
@@ -35,7 +36,15 @@ function RootLayoutContent() {
     thin: require("@/assets/fonts/Montserrat-Thin.ttf"),
   });
 
+
+
   useEffect(() => {
+
+    console.log("isAuthenticated", isAuthenticated);
+    console.log("user", user);
+    console.log("isBootstrapping", isBootstrapping);
+    console.log("hasInterest", hasInterest);
+    console.log("fontsLoaded", fontsLoaded);
     if (isAuthenticated && user && !isBootstrapping) {
       loadUserInterests(user.id);
     }
@@ -68,7 +77,17 @@ function RootLayoutContent() {
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) return null;
+
   if (isBootstrapping) return null;
+
+  if (isBootstrapping) {
+    return null;
+  }
+
+  if (!isAuthenticated && !isBootstrapping) {
+    return <Redirect href="/(auth)/sign-in" />;
+  }
+
 
   return (
     <View className="flex-1">
@@ -86,6 +105,7 @@ function RootLayoutContent() {
       <PlayerBottomSheet />
       <Comments />
       <Options />
+      <Search />
     </View>
   );
 }
@@ -100,15 +120,17 @@ export default function RootLayout() {
               <PlayerProvider>
                 <CommentsSheetProvider>
                   <OptionsSheetProvider>
-                    <SortFilterProvider>
-                      <UIProvider>
-                        <RssLinkProvider>
-                          <MiniPlayerProvider>
-                            <RootLayoutContent />
-                          </MiniPlayerProvider>
-                        </RssLinkProvider>
-                      </UIProvider>
-                    </SortFilterProvider>
+                    <SearchSheetProvider>
+                      <SortFilterProvider>
+                        <UIProvider>
+                          <RssLinkProvider>
+                            <MiniPlayerProvider>
+                              <RootLayoutContent />
+                            </MiniPlayerProvider>
+                          </RssLinkProvider>
+                        </UIProvider>
+                      </SortFilterProvider>
+                    </SearchSheetProvider>
                   </OptionsSheetProvider>
                 </CommentsSheetProvider>
               </PlayerProvider>

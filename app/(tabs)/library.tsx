@@ -4,9 +4,9 @@ import React from 'react'
 const library = () => {
   return (
     <View>
-      <Text>library</Text>
+      <Text>library jhgifgkhfgk</Text>
     </View>
-  )
+  );
 }
 
 export default library

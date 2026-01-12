@@ -53,10 +53,18 @@ import queue from "@/assets/icons/queue.png"
 import expand from "@/assets/icons/expand.png"
 import send from "@/assets/icons/send.png"
 import redirect from "@/assets/icons/redirect.png"
+import search from "@/assets/icons/search.png"
+import mood from "@/assets/icons/mood.png"
+import pod from "@/assets/icons/pod.png"
+import close from "@/assets/icons/close.png"
 
 
 
 export const icons = {
+  close,
+  mood,
+  pod,
+  search,
   redirect,
   send,
   expand,

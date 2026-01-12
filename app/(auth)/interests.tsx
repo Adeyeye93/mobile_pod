@@ -11,7 +11,7 @@ import { useToast } from "@/context/FlashMessageContext";
 export default function SelectInterests() {
   const router = useRouter();
   const { show } = useToast()
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isBootstrapping } = useAuth();
   const {
     interests,
     selectedInterestIds,
@@ -21,11 +21,11 @@ export default function SelectInterests() {
   } = useInterest();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-       router.replace("/(auth)/sign-in")
+    if (!isAuthenticated && !isBootstrapping) {
+      router.replace("/(auth)/sign-in");
     }
     loadInterests();
-  }, []);
+  }, [ isAuthenticated ]);
 
   const handleContinue = async () => {
     if (selectedInterestIds.length > 0 && user) {

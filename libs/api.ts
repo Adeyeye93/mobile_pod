@@ -1,12 +1,12 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getAuth, updateAuth, clearAuth } from "@/storage/authStorage";
-
+import { getAuth, updateAuth } from "@/storage/authStorage";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 let isRefreshing = false;
 let errorMessage;
+
 
 type FailedRequest = {
   resolve: (token: string) => void;
@@ -59,6 +59,8 @@ api.interceptors.response.use(
     const url = originalRequest?.url ?? "";
     errorMessage = error.response?.data?.errors;
 
+    
+
     // 1️⃣ Validation errors (expected)
     if (status === 422) {
       return Promise.reject({
@@ -83,11 +85,11 @@ api.interceptors.response.use(
 
     // 3️⃣ Token refresh logic (ONLY for protected routes)
     if (status === 401 && !originalRequest._retry) {
+
       const data = await getAuth();
       const refreshToken = data?.refreshToken;
       // console.log("THE REFRESH TOKEN",refreshToken)
       if (!refreshToken) {
-        await clearAuth();
         return Promise.reject({
           type: "auth",
           message: "Session expired. Please log in again.",
@@ -123,6 +125,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
+
         await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
         return Promise.reject({
           type: "auth",

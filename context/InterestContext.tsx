@@ -33,9 +33,18 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const response = await api.get("/interests");
-      setInterests(response.data.data || response.data.interests || []);
+       const interestsData =
+         response.data.data || response.data.interests || [];
+       setInterests(interestsData);
+
+       // Save to cache
+       await AsyncStorage.setItem(
+         "userInterests",
+         JSON.stringify(interestsData)
+       );
     } catch (error) {
       console.log("Error loading interests:", error);
+
     } finally {
       setLoading(false);
     }

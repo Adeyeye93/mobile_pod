@@ -19,16 +19,7 @@ const TabIcon = ({ focused, icon, iconH, title }: any) => {
 };
 
 export default function TabsLayout() {
-  const { isAuthenticated, isBootstrapping } = useAuth();
-
-  if (isBootstrapping) {
-    return null;
-  }
-
-  if (!isAuthenticated) {
-    return <Redirect href="/(auth)/onboarding" />;
-  }
-
+  
   return (
     <Tabs
       screenOptions={{

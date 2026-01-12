@@ -1,7 +1,6 @@
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/image";
 import { emojis } from "@/constants/emoji";
-import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import {
   CommentsSheetContext,
   Sheet,

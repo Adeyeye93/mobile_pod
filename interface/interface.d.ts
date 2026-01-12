@@ -20,7 +20,6 @@ interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
   isBootstrapping: boolean;
-
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (payload: any) => Promise<void>;
   signOut: () => Promise<void>;
