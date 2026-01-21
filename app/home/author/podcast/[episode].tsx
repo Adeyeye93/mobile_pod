@@ -13,6 +13,7 @@ const Episode = () => {
     <View className="flex-1 bg-background px-4">
       <PageHead
         title="Episode 685"
+        has_menu
         iconsList={[icons.share, icons.rss, icons.report]}
         dropdownList={["Share", "View RSS feed", "Report"]}
       />

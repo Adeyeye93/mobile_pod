@@ -32,8 +32,13 @@ const Author = () => {
       </View>
       <PageHead
         title="Author"
-        iconsList={[icons.share, icons.rss, icons.report]}
-        dropdownList={["Share", "View RSS feed", "Report"]}
+        customIcons={[
+          {
+            icon: icons.search,
+            onPress: () => console.log("TEXT LOG"),
+            testID: "download-btn",
+          },
+        ]}
       />
       <Head
         authorDetails={true}

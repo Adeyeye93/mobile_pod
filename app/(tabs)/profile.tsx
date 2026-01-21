@@ -10,10 +10,10 @@ const Profile = () => {
 }
 
   return (
-    <View className='flex-1 flex items-center justify-center'>
+    <View className="flex-1 flex items-center justify-center bg-background">
       <Text onPress={() => handleLogOut()}>Log Out</Text>
     </View>
-  )
+  );
 }
 
 export default Profile

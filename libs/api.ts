@@ -2,7 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth, updateAuth } from "@/storage/authStorage";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:4000/api";
 
 let isRefreshing = false;
 let errorMessage;

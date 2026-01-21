@@ -6,16 +6,22 @@ import DropdownWrapper from "./dropdown";
 import { useRssLink } from "./modals/RSSLink";
 import { useSortFilter } from "./modals/Sort";
 
+type CustomIcon = {
+  icon: any; // Image source
+  onPress: () => void;
+  testID?: string;
+};
+
 type PageHeadProps = {
   title?: string;
   has_link?: boolean;
   iconsList?: string[];
   dropdownList?: string[];
   has_menu?: boolean;
+  has_profile?: boolean;
+  profile?: any;
+  customIcons?: CustomIcon[]; // Better name and proper typing
 };
-
-
-
 
 const PageHead = ({
   title,
@@ -23,6 +29,9 @@ const PageHead = ({
   iconsList,
   dropdownList,
   has_menu,
+  has_profile,
+  profile,
+  customIcons,
 }: PageHeadProps) => {
   const { ref } = useRssLink();
   const router = useRouter();
@@ -32,17 +41,24 @@ const PageHead = ({
     if (ref.current?.close && sortRef.current?.close) {
       await ref.current.close();
       await sortRef.current.close();
-      router.back(); // now go back
+      router.back();
     } else {
       router.back();
     }
   };
+
   return (
     <View className="w-full p-2 flex flex-row items-center justify-between mt-16 pb-10 gap-6">
+      {/* Left Section - Back/Profile + Title */}
       <View className="flex flex-row items-center gap-6 flex-1">
-        <Pressable onPress={() => handleBack()}>
-          <Image source={icons.backPage} className="w-7 h-7" />
-        </Pressable>
+        {!has_profile && (
+          <Pressable onPress={handleBack}>
+            <Image source={icons.backPage} className="w-7 h-7" />
+          </Pressable>
+        )}
+        {has_profile && (
+          <Image source={profile} className="h-9 w-9 rounded-full" />
+        )}
         <View className="flex-1">
           <Text
             numberOfLines={1}
@@ -52,20 +68,45 @@ const PageHead = ({
           </Text>
         </View>
       </View>
-      <View className="flex w-fit h-full flex-row items-center gap-7 justify-end">
+
+      {/* Right Section - Action Icons */}
+      <View className="flex w-fit h-full flex-row items-center gap-4 justify-end">
+        {/* RSS Link Icon */}
         {has_link && (
           <Pressable onPress={() => ref.current?.expand()}>
             <Image source={icons.link} className="w-7 h-7" />
           </Pressable>
         )}
-        {has_menu && ( <DropdownWrapper
-          options={dropdownList ? dropdownList : ["Share"]}
-          iconPaths={iconsList ? iconsList : [icons.share]}
-          onSelect={(value) => console.log(value)}
-        >
-          <Image source={icons.topMenu} className="w-7 h-7" />
-        </DropdownWrapper>)}
-       
+
+        {/* Menu Dropdown */}
+        {has_menu && (
+          <DropdownWrapper
+            options={dropdownList || ["Share"]}
+            iconPaths={iconsList || [icons.share]}
+            onSelect={(value) => console.log(value)}
+          >
+            <Image source={icons.topMenu} className="w-7 h-7" />
+          </DropdownWrapper>
+        )}
+
+        {/* Custom Icons */}
+        {customIcons && customIcons.length > 0 && (
+          <View className="flex-row items-center gap-4">
+            {customIcons.map((customIcon, index) => (
+              <Pressable
+                key={index}
+                onPress={customIcon.onPress}
+                testID={customIcon.testID}
+              >
+                <Image
+                  source={customIcon.icon}
+                  tintColor="#E4E7EC"
+                  className="w-7 h-7"
+                />
+              </Pressable>
+            ))}
+          </View>
+        )}
       </View>
     </View>
   );

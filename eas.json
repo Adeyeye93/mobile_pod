@@ -12,7 +12,11 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "API_URL": "https://backend-pod.onrender.com/api",
+        "APP_ENV": "production"
+      }
     }
   },
   "submit": {

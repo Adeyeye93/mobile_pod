@@ -1,6 +1,5 @@
 import { View, Text, Image } from 'react-native'
 import React from 'react'
-import { icons } from '@/constants/icons'
 
 const SearchHeader = (
     {icon, title}: {icon: any, title: string}

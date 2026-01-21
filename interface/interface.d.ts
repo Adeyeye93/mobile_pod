@@ -76,3 +76,60 @@ interface SheetProps {
   onClose?: () => void;
   enablePanDownToClose?: boolean;
 }
+
+interface NavigationProps {
+  isBootstrapping: boolean;
+  isAuthenticated: boolean;
+  isInterestHydrated: boolean;
+  hasInterest: boolean;
+  fontsLoaded: boolean;
+}
+
+type CustomType =
+  | "Listen Later"
+  | "Archive"
+  | "Liked Podcasts"
+  | "Recently Played";
+
+interface GridProps {
+  use_icon?: boolean;
+  color?: any;
+  icon?: any;
+  Type?: CustomType;
+  episodeCount?: number;
+  non_icon?: boolean,
+  author?: string,
+  onPress: () => void
+}
+
+interface CustomModalProps {
+  visible: boolean;
+  onClose: () => void;
+  title?: string | null;
+  children: React.ReactNode;
+  showCloseButton?: boolean;
+  animationType?: "none" | "slide" | "fade";
+  backgroundColor?: string;
+  MenuIcons?: ImageSourcePropType[],
+
+}
+
+interface ModalContextType {
+  isOpen: boolean;
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+}
+
+interface CreateModalContextReturn {
+  ModalContext: React.Context<ModalContextType | undefined>;
+  useModalContext: () => ModalContextType;
+  ModalProvider: React.FC<{ children: React.ReactNode }>;
+  ModalComponent: React.FC<{
+    title: string | null;
+    children: React.ReactNode;
+    animationType?: "none" | "slide" | "fade";
+    backgroundColor?: string;
+    MenuIcons?: ImageSourcePropType[]
+  }>;
+}

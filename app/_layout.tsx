@@ -1,32 +1,46 @@
+import Comments from "@/components/modals/Comments";
 import MiniPlayer from "@/components/modals/MiniPlayer";
+import Options from "@/components/modals/Options";
+import PlayerBottomSheet, { PlayerProvider } from "@/components/modals/player";
 import RssLink, { RssLinkProvider } from "@/components/modals/RSSLink";
 import SortFilterE, { SortFilterProvider } from "@/components/modals/Sort";
-import { UIProvider, useUI } from "@/context/UIContext";
-import { Slot, useRouter, Redirect } from "expo-router";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import "./globals.css";
-import { MiniPlayerProvider } from "@/context/MiniPlayerContext";
 import { AudioPlayerProvider } from "@/context/AudioPlayerContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import {
+  CommentsSheetProvider,
+  OptionsSheetProvider,
+  SearchSheetProvider,
+} from "@/context/CreateSheetContext";
 import { FlashToastProvider } from "@/context/FlashMessageContext";
-import { useInterest, InterestProvider } from "@/context/InterestContext";
+import { InterestProvider, useInterest } from "@/context/InterestContext";
+import { MiniPlayerProvider } from "@/context/MiniPlayerContext";
+import {
+  PlayListContentProvider,
+  PlayListModalProvider,
+} from "@/context/ModalIntances";
+import { UIProvider, useUI } from "@/context/UIContext";
+import { getInitialRoute, getNavigationState } from "@/libs/navigationLogic";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
+import { Slot, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import PlayerBottomSheet, { PlayerProvider } from "@/components/modals/player";
 import { View } from "react-native";
-import { CommentsSheetProvider, OptionsSheetProvider, SearchSheetProvider } from "@/context/CreateSheetContext";
-import Comments from "@/components/modals/Comments";
-import Options from "@/components/modals/Options";
-import Search from "@/components/modals/Search";
-
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "./globals.css";
 
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutContent() {
   const { isBootstrapping, user, isAuthenticated } = useAuth();
   const { isRSSLinkOpen } = useUI();
-  const { hasInterest, loadUserInterests, isInterestHydrated } = useInterest();
+  const {
+    hasInterest,
+    loadUserInterests,
+    isInterestHydrated,
+    setHasInterest,
+    setUserInterests,
+  } = useInterest();
   const router = useRouter();
 
   const [fontsLoaded, fontError] = useFonts({
@@ -36,59 +50,59 @@ function RootLayoutContent() {
     thin: require("@/assets/fonts/Montserrat-Thin.ttf"),
   });
 
-
-
+  // Load user interests when authenticated
   useEffect(() => {
+    if (isAuthenticated && user && !isBootstrapping && isInterestHydrated) {
+      const loadInterests = async () => {
+        try {
+          const cached = await AsyncStorage.getItem("userInterests");
+          if (cached) {
+            setUserInterests(JSON.parse(cached));
+            setHasInterest();
+            return;
+          }
+          loadUserInterests(user.id);
+        } catch (error) {
+          console.error("Error loading interests:", error);
+          setUserInterests([]);
+        } finally {
+        }
+      };
 
-    console.log("isAuthenticated", isAuthenticated);
-    console.log("user", user);
-    console.log("isBootstrapping", isBootstrapping);
-    console.log("hasInterest", hasInterest);
-    console.log("fontsLoaded", fontsLoaded);
-    if (isAuthenticated && user && !isBootstrapping) {
-      loadUserInterests(user.id);
+      loadInterests();
     }
-  }, [isAuthenticated, user, isBootstrapping]);
+  }, [isAuthenticated, user, isBootstrapping, isInterestHydrated]);
 
-  useEffect(() => {
-    if (
-      isAuthenticated &&
-      user &&
-      isInterestHydrated &&
-      !hasInterest &&
-      !isBootstrapping &&
-      fontsLoaded
-    ) {
-      router.replace("/(auth)/interests");
-    }
-  }, [
-    isAuthenticated,
-    hasInterest,
-    isInterestHydrated,
-    user,
-    isBootstrapping,
-    fontsLoaded,
-  ]);
-
+  // Hide splash screen when fonts are ready
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
+  // Determine navigation state
+  const navState = getNavigationState({
+    isBootstrapping,
+    isAuthenticated,
+    isInterestHydrated,
+    hasInterest,
+    fontsLoaded: fontsLoaded ?? false,
+  });
 
-  if (isBootstrapping) return null;
+  // Handle navigation based on state
+  useEffect(() => {
+    if (navState === "splash") return; // Still loading
 
-  if (isBootstrapping) {
+    const targetRoute = getInitialRoute(navState);
+    router.replace(targetRoute as any);
+  }, [navState]);
+
+  // Show nothing while loading
+  if (navState === "splash") {
     return null;
   }
 
-  if (!isAuthenticated && !isBootstrapping) {
-    return <Redirect href="/(auth)/sign-in" />;
-  }
-
-
+  // Render main app with modals
   return (
     <View className="flex-1">
       {/* Main content */}
@@ -105,7 +119,6 @@ function RootLayoutContent() {
       <PlayerBottomSheet />
       <Comments />
       <Options />
-      <Search />
     </View>
   );
 }
@@ -119,19 +132,23 @@ export default function RootLayout() {
             <AudioPlayerProvider>
               <PlayerProvider>
                 <CommentsSheetProvider>
-                  <OptionsSheetProvider>
-                    <SearchSheetProvider>
-                      <SortFilterProvider>
-                        <UIProvider>
-                          <RssLinkProvider>
-                            <MiniPlayerProvider>
-                              <RootLayoutContent />
-                            </MiniPlayerProvider>
-                          </RssLinkProvider>
-                        </UIProvider>
-                      </SortFilterProvider>
-                    </SearchSheetProvider>
-                  </OptionsSheetProvider>
+                  <PlayListModalProvider>
+                    <PlayListContentProvider>
+                      <OptionsSheetProvider>
+                        <SearchSheetProvider>
+                          <SortFilterProvider>
+                            <UIProvider>
+                              <RssLinkProvider>
+                                <MiniPlayerProvider>
+                                  <RootLayoutContent />
+                                </MiniPlayerProvider>
+                              </RssLinkProvider>
+                            </UIProvider>
+                          </SortFilterProvider>
+                        </SearchSheetProvider>
+                      </OptionsSheetProvider>
+                    </PlayListContentProvider>
+                  </PlayListModalProvider>
                 </CommentsSheetProvider>
               </PlayerProvider>
             </AudioPlayerProvider>

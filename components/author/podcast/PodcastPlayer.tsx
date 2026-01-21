@@ -1,38 +1,31 @@
 import { icons } from "@/constants/icons";
-import {
-  View,
-  Pressable,
-  Text,
-  Image,
-  PanResponder,
-} from "react-native";
-import { useEffect, useRef, useState } from "react";
 import { useAudio } from "@/context/AudioPlayerContext";
+import { useEffect, useRef } from "react";
+import { Image, PanResponder, Pressable, Text, View } from "react-native";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 
 interface PodcastPlayerProps {
   audioSource: any;
-  color: any
+  color: any;
 }
 
-
-export default function PodcastPlayer({ audioSource, color }: PodcastPlayerProps) {
+export default function PodcastPlayer({
+  audioSource,
+  color,
+}: PodcastPlayerProps) {
   const { player, status, toggle, seekBy, setRate, rate } = useAudio();
 
   const barWidth = useRef(0);
-  const [isScrubbing, setIsScrubbing] = useState(false);
 
   useEffect(() => {
     if (audioSource) {
       player.replace(audioSource);
     }
   }, [audioSource]);
-
-
 
   const seekToPosition = (x: number) => {
     if (!barWidth.current || !status.duration) return;
@@ -43,14 +36,13 @@ export default function PodcastPlayer({ audioSource, color }: PodcastPlayerProps
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onPanResponderGrant: (e) => {
-      setIsScrubbing(true);
       seekToPosition(e.nativeEvent.locationX);
     },
     onPanResponderMove: (e) => {
       seekToPosition(e.nativeEvent.locationX);
     },
     onPanResponderRelease: () => {
-      setIsScrubbing(false);
+      // Scrubbing ended
     },
   });
 
@@ -59,7 +51,7 @@ export default function PodcastPlayer({ audioSource, color }: PodcastPlayerProps
 
   // Generate waveform data
   const waveformBars = Array.from({ length: 60 }, () =>
-    Math.floor(Math.random() * 100)
+    Math.floor(Math.random() * 100),
   );
 
   return (

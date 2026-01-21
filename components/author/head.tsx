@@ -42,8 +42,8 @@ const Head = ({ authorDetails, Description, imageUrl, title, podcastsCount }: Pr
               } h-10 rounded-full flex flex-row items-center justify-center gap-2`}
             >
               <Image
-                source={subscribed ? icons.subscribed : icons.subscribe}
-                className="h-4 w-4"
+                source={subscribed ? icons.selected : icons.plus}
+                className="h-3 w-3"
                 tintColor={subscribed ? "#4169e1" : "#ffffff"}
               />
               <Text

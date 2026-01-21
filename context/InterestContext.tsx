@@ -1,10 +1,25 @@
-import { createContext, useContext, useState, useEffect } from "react";
 import { api } from "@/libs/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createContext, useContext, useEffect, useState } from "react";
 
+interface InterestContextType {
+  interests: Interest[];
+  userInterests: Interest[];
+  selectedInterestIds: number[];
+  hasInterest: boolean;
+  loading: boolean;
+  isInterestHydrated: boolean;
+  loadInterests: () => Promise<void>;
+  loadUserInterests: (userId: number) => Promise<boolean>;
+  toggleInterest: (interestId: number) => void;
+  saveUserInterests: (userId: number) => Promise<boolean>;
+  clearUserInterests: (userId: number) => Promise<void>;
+  setHasInterest: () => Promise<void>;
+  setUserInterests: (interests: any) => Promise<void>;
+}
 
 const InterestContext = createContext<InterestContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function InterestProvider({ children }: { children: React.ReactNode }) {
@@ -15,36 +30,37 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [isInterestHydrated, setIsInterestHydrated] = useState(false);
 
-
+  // Only hydrate from cache, don't set hasInterest yet
   useEffect(() => {
     (async () => {
-      const cached = await AsyncStorage.getItem("hasInterest");
-
-      if (cached !== null) {
-        setHasInterest(JSON.parse(cached));
+      try {
+        const cached = await AsyncStorage.getItem("hasInterest");
+        if (cached !== null) {
+          setHasInterest(JSON.parse(cached));
+        }
+      } catch (error) {
+        console.log("Error reading cached interests:", error);
+      } finally {
+        // Mark as hydrated ONLY after checking cache
+        setIsInterestHydrated(true);
       }
-
-      setIsInterestHydrated(true);
     })();
   }, []);
-
 
   const loadInterests = async () => {
     try {
       setLoading(true);
       const response = await api.get("/interests");
-       const interestsData =
-         response.data.data || response.data.interests || [];
-       setInterests(interestsData);
+      const interestsData = response.data.data || response.data.interests || [];
+      setInterests(interestsData);
 
-       // Save to cache
-       await AsyncStorage.setItem(
-         "userInterests",
-         JSON.stringify(interestsData)
-       );
+      // Save to cache
+      await AsyncStorage.setItem(
+        "userInterests",
+        JSON.stringify(interestsData),
+      );
     } catch (error) {
       console.log("Error loading interests:", error);
-
     } finally {
       setLoading(false);
     }
@@ -53,38 +69,45 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
   const loadUserInterests = async (userId: number) => {
     try {
       setLoading(true);
-
       const response = await api.get(`/users/${userId}/interests`);
-
       const payload = response.data;
 
-      let interests: Interest[];
+      let userInterestsData: Interest[];
 
       if (Array.isArray(payload.data)) {
-        interests = payload.data;
+        userInterestsData = payload.data;
       } else if (Array.isArray(payload.interests)) {
-        interests = payload.interests;
+        userInterestsData = payload.interests;
       } else {
-        throw new Error("Invalid interests response shape");
+        userInterestsData = [];
       }
 
-      setUserInterests(interests);
-      setHasInterest(interests.length > 0);
-      setSelectedInterestIds(interests.map((i) => i.id));
+      setUserInterests(userInterestsData);
+      const hasAnyInterests = userInterestsData.length > 0;
+      setHasInterest(hasAnyInterests);
+      setSelectedInterestIds(userInterestsData.map((i) => i.id));
+
+      // Persist to cache
+      await AsyncStorage.setItem(
+        "hasInterest",
+        JSON.stringify(hasAnyInterests),
+      );
+
+      return hasAnyInterests;
     } catch (error) {
       console.error("Error loading user interests:", error);
       setHasInterest(false);
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-
   const toggleInterest = (interestId: number) => {
     setSelectedInterestIds((prev) =>
       prev.includes(interestId)
         ? prev.filter((id) => id !== interestId)
-        : [...prev, interestId]
+        : [...prev, interestId],
     );
   };
 
@@ -94,9 +117,10 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
       const response = await api.post(`/users/${userId}/interests/save`, {
         interest_ids: selectedInterestIds,
       });
+
       if (response.data.success || response.status === 200) {
-        await AsyncStorage.setItem("hasInterest", JSON.stringify(hasInterest));
         setHasInterest(true);
+        await AsyncStorage.setItem("hasInterest", JSON.stringify(true));
         await loadUserInterests(userId);
         return true;
       }
@@ -115,9 +139,18 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
       setUserInterests([]);
       setHasInterest(false);
       setSelectedInterestIds([]);
+      await AsyncStorage.setItem("hasInterest", JSON.stringify(false));
     } catch (error) {
       console.log("Error clearing interests:", error);
     }
+  };
+
+  const setHasInterestAsync = async () => {
+    setHasInterest(true);
+  };
+
+  const setUserInterestsAsync = async (interests: any) => {
+    setInterests(interests)
   };
 
   return (
@@ -134,6 +167,8 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
         toggleInterest,
         saveUserInterests,
         clearUserInterests,
+        setHasInterest: setHasInterestAsync,
+        setUserInterests: setUserInterestsAsync,
       }}
     >
       {children}

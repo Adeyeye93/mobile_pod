@@ -57,10 +57,21 @@ import search from "@/assets/icons/search.png"
 import mood from "@/assets/icons/mood.png"
 import pod from "@/assets/icons/pod.png"
 import close from "@/assets/icons/close.png"
+import arc from "@/assets/icons/arc.png"
+import recentplayed from "@/assets/icons/recentPlay.png"
+import playlater from "@/assets/icons/PlayLater.png"
+import filter from "@/assets/icons/filter.png"
+
+
+
 
 
 
 export const icons = {
+  filter,
+  arc,
+  recentplayed,
+  playlater,
   close,
   mood,
   pod,
