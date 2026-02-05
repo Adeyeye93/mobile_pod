@@ -130,6 +130,64 @@ interface CreateModalContextReturn {
     children: React.ReactNode;
     animationType?: "none" | "slide" | "fade";
     backgroundColor?: string;
-    MenuIcons?: ImageSourcePropType[]
+    MenuIcons?: ImageSourcePropType[];
+    showCloseButton?: boolean
   }>;
+}
+
+interface Creator {
+  id: string;
+  name: string;
+  channelId: string;
+  avatar: string;
+  followerCount: number;
+  bio: string;
+}
+
+interface GuestInvite {
+  id: string;
+  podcastId: string;
+  hostCreatorId: string;
+  guestCreatorId: string;
+  guestCreator: Creator;
+  scheduledStartTime: Date;
+  status: "pending" | "accepted" | "declined" | "cancelled";
+  inviteSentAt: Date;
+  acceptedAt?: Date;
+  declinedAt?: Date;
+  joinedAt?: Date;
+  role: "guest" | "co-host";
+  message?: string; // Optional invite message from host
+}
+
+interface PodcastWithGuests {
+  id: string;
+  title: string;
+  description: string;
+  creatorId: string;
+  scheduledStartTime: Date;
+  status: "scheduled" | "live" | "ended";
+  guests: GuestInvite[];
+}
+
+// ============= INVITE CONTEXT =============
+
+interface GuestInviteContextType {
+  invites: GuestInvite[];
+  sendInvite: (data: SendInviteRequest) => Promise<GuestInvite>;
+  acceptInvite: (inviteId: string) => Promise<void>;
+  declineInvite: (inviteId: string) => Promise<void>;
+  getPendingInvites: () => GuestInvite[];
+  getAcceptedGuests: (podcastId: string) => GuestInvite[];
+  canStartPodcast: (podcastId: string) => boolean; // Check if 1hr passed
+}
+
+
+interface SendInviteRequest {
+  podcastId: string;
+  hostCreatorId: string;
+  guestCreatorId: string;
+  scheduledStartTime: Date;
+  role: "guest" | "co-host";
+  message?: string;
 }

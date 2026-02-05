@@ -94,7 +94,6 @@ const Discover = () => {
           <PageHead
             title="Discover"
             has_profile
-            profile={images.profile}
             has_menu
           />
           <Pressable

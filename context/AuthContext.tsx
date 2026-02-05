@@ -57,7 +57,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         accessToken: res.data.token,
         refreshToken: res.data.refresh,
       };
-      console.log("signUp payload", payload);
       await saveAuth(payload);
       setUser(payload.user);
       

@@ -17,6 +17,7 @@ import { MiniPlayerProvider } from "@/context/MiniPlayerContext";
 import {
   PlayListContentProvider,
   PlayListModalProvider,
+  CreatorWelcomeModalProvider,
 } from "@/context/ModalIntances";
 import { UIProvider, useUI } from "@/context/UIContext";
 import { getInitialRoute, getNavigationState } from "@/libs/navigationLogic";
@@ -28,6 +29,9 @@ import { useEffect } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "./globals.css";
+import { CreatorModeProvider } from "@/context/CreatorModeContext";
+import CreatorWelcome from "./home/CreatorWelcome";
+import { GuestInviteProvider } from "@/context/GuessInviteContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -119,6 +123,7 @@ function RootLayoutContent() {
       <PlayerBottomSheet />
       <Comments />
       <Options />
+      <CreatorWelcome />
     </View>
   );
 }
@@ -130,27 +135,33 @@ export default function RootLayout() {
         <AuthProvider>
           <InterestProvider>
             <AudioPlayerProvider>
-              <PlayerProvider>
-                <CommentsSheetProvider>
-                  <PlayListModalProvider>
-                    <PlayListContentProvider>
-                      <OptionsSheetProvider>
-                        <SearchSheetProvider>
-                          <SortFilterProvider>
-                            <UIProvider>
-                              <RssLinkProvider>
-                                <MiniPlayerProvider>
-                                  <RootLayoutContent />
-                                </MiniPlayerProvider>
-                              </RssLinkProvider>
-                            </UIProvider>
-                          </SortFilterProvider>
-                        </SearchSheetProvider>
-                      </OptionsSheetProvider>
-                    </PlayListContentProvider>
-                  </PlayListModalProvider>
-                </CommentsSheetProvider>
-              </PlayerProvider>
+              <CreatorModeProvider>
+                <CreatorWelcomeModalProvider>
+                  <GuestInviteProvider>
+                    <PlayerProvider>
+                      <CommentsSheetProvider>
+                        <PlayListModalProvider>
+                          <PlayListContentProvider>
+                            <OptionsSheetProvider>
+                              <SearchSheetProvider>
+                                <SortFilterProvider>
+                                  <UIProvider>
+                                    <RssLinkProvider>
+                                      <MiniPlayerProvider>
+                                        <RootLayoutContent />
+                                      </MiniPlayerProvider>
+                                    </RssLinkProvider>
+                                  </UIProvider>
+                                </SortFilterProvider>
+                              </SearchSheetProvider>
+                            </OptionsSheetProvider>
+                          </PlayListContentProvider>
+                        </PlayListModalProvider>
+                      </CommentsSheetProvider>
+                    </PlayerProvider>
+                  </GuestInviteProvider>
+                </CreatorWelcomeModalProvider>
+              </CreatorModeProvider>
             </AudioPlayerProvider>
           </InterestProvider>
         </AuthProvider>

@@ -20,7 +20,7 @@ export function CustomModal({
   showCloseButton = true,
   animationType = "slide",
   backgroundColor = "#181a20",
-  MenuIcons
+  MenuIcons,
 }: CustomModalProps) {
   return (
     <Modal
@@ -48,21 +48,23 @@ export function CustomModal({
                     <Image className="w-6 h-6" source={icons.backPage} />
                   </Pressable>
                 )}
-                <Text numberOfLines={1} className="text-textSecondary font-MonBold text-2xl flex-1">
+                <Text
+                  numberOfLines={1}
+                  className="text-textSecondary font-MonBold text-2xl flex-1"
+                >
                   {title || ""}
                 </Text>
               </View>
             )}
             {MenuIcons?.map((menu, index) => (
-                <Pressable
-                 key={menu}
-                >
-                  <Image className="w-6 h-6" source={menu}/>
-                </Pressable>
+              <Pressable key={menu}>
+                <Image className="w-6 h-6" source={menu} />
+              </Pressable>
             ))}
           </View>
 
-          <Divider gap={1} value={380} />
+          {showCloseButton && <Divider gap={1} value={380} />}
+
           {/* Modal content */}
           <View className="flex-1">{children}</View>
         </Pressable>
@@ -107,12 +109,14 @@ export function createModalContext(): CreateModalContextReturn {
     MenuIcons,
     animationType = "slide",
     backgroundColor = "#181a20",
+    showCloseButton,
   }: {
     title: string | null;
     children: React.ReactNode;
     animationType?: "none" | "slide" | "fade";
     backgroundColor?: string;
-    MenuIcons?: ImageSourcePropType[]
+    MenuIcons?: ImageSourcePropType[];
+    showCloseButton?: boolean;
   }) {
     const { isOpen, close } = useModalContext();
 
@@ -124,6 +128,7 @@ export function createModalContext(): CreateModalContextReturn {
         animationType={animationType}
         backgroundColor={backgroundColor}
         MenuIcons={MenuIcons}
+        showCloseButton={showCloseButton}
       >
         {children}
       </CustomModal>

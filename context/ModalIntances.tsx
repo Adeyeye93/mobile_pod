@@ -14,3 +14,10 @@ export const {
   ContentProvider: PlayListContentProvider,
   useModalContent: usePlayListContent,
 } = createModalContentContext();
+
+export const {
+  ModalContext: CreatorWelcomeContext,
+  useModalContext: useCreatorWelcomeModal,
+  ModalProvider: CreatorWelcomeModalProvider,
+  ModalComponent: CreatorWelcomeModal,
+} = createModalContext();

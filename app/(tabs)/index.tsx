@@ -11,6 +11,7 @@ import { FilterPill } from "@/components/fielterpill";
 import { useState } from "react";
 import AllFeed from "@/components/page/AllFeed";
 import Live from "@/components/page/Live";
+import PP from "@/components/author/profile/PP";
 
 
 export default function Index() {
@@ -38,7 +39,7 @@ export default function Index() {
     <View className="flex-1 bg-background px-4 pb-16">
       <View className="w-full p-2 flex flex-row items-center justify-between mt-12">
         <View className="flex-1 flex-row items-center h-full gap-6">
-          <Image source={images.profile} className="h-9 w-9 rounded-full" />
+          <PP />
           <View className="flex-1 h-full flex-row items-center justify-start gap-3">
             <ScrollView
               horizontal

@@ -55,7 +55,8 @@
             "playsInSilentModeIOS": true,
             "staysActiveInBackground": true,
             "interruptionModeIOS": "duckOthers",
-            "interruptionModeAndroid": "duckOthers"
+            "interruptionModeAndroid": "duckOthers",
+            "recordAudioAndroid": true
           }
         }
       ],

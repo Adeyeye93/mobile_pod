@@ -5,6 +5,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import DropdownWrapper from "./dropdown";
 import { useRssLink } from "./modals/RSSLink";
 import { useSortFilter } from "./modals/Sort";
+import PP from "./author/profile/PP";
 
 type CustomIcon = {
   icon: any; // Image source
@@ -19,8 +20,8 @@ type PageHeadProps = {
   dropdownList?: string[];
   has_menu?: boolean;
   has_profile?: boolean;
-  profile?: any;
   customIcons?: CustomIcon[]; // Better name and proper typing
+  premium?: boolean;
 };
 
 const PageHead = ({
@@ -30,8 +31,8 @@ const PageHead = ({
   dropdownList,
   has_menu,
   has_profile,
-  profile,
   customIcons,
+  premium,
 }: PageHeadProps) => {
   const { ref } = useRssLink();
   const router = useRouter();
@@ -48,7 +49,7 @@ const PageHead = ({
   };
 
   return (
-    <View className="w-full p-2 flex flex-row items-center justify-between mt-16 pb-10 gap-6">
+    <View className="w-full p-2 flex flex-row items-center justify-between mt-12 pb-10 gap-6">
       {/* Left Section - Back/Profile + Title */}
       <View className="flex flex-row items-center gap-6 flex-1">
         {!has_profile && (
@@ -56,9 +57,7 @@ const PageHead = ({
             <Image source={icons.backPage} className="w-7 h-7" />
           </Pressable>
         )}
-        {has_profile && (
-          <Image source={profile} className="h-9 w-9 rounded-full" />
-        )}
+        {has_profile && <PP />}
         <View className="flex-1">
           <Text
             numberOfLines={1}
@@ -71,6 +70,11 @@ const PageHead = ({
 
       {/* Right Section - Action Icons */}
       <View className="flex w-fit h-full flex-row items-center gap-4 justify-end">
+        {premium && (
+          <Pressable onPress={() => console.log("user wants to use premium")}>
+            <Image source={icons.premium} className="w-7 h-7" />
+          </Pressable>
+        )}
         {/* RSS Link Icon */}
         {has_link && (
           <Pressable onPress={() => ref.current?.expand()}>

@@ -39,7 +39,7 @@ const Library = () => {
   };
 
   return (
-    <View className="flex-1 bg-background pb-16">
+    <View className="flex-1 bg-background pb-16 ">
       <View
         className="w-full h-fit"
         style={{
@@ -53,7 +53,6 @@ const Library = () => {
           className="w-full h-full absolute inset-0"
         />
         <PageHead
-          profile={images.profile}
           has_profile
           title="Your Library"
           customIcons={[

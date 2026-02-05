@@ -18,6 +18,7 @@ module.exports = {
         background: "#181a20",
         textPrimary: "#E4E7EC",
         textSecondary: "#E0E0E0",
+        CreatorBG: "#1a1a2e",
       },
       fontFamily: {
         MonThin: ["thin"],

@@ -14,15 +14,15 @@ import podAction from "@/assets/icons/podAction.png";
 import downloaded from "@/assets/icons/downloaded.png";
 import pause from "@/assets/icons/pause.png";
 import download from "@/assets/icons/download.png";
-import finished from "@/assets/icons/finished.png"
-import backPage from "@/assets/icons/backPage.png"
-import topMenu from "@/assets/icons/topMenu.png"
-import markAsDone from "@/assets/icons/done.png"
-import share from "@/assets/icons/share.png"
-import link from "@/assets/icons/link.png"
-import subscribe from "@/assets/icons/subscribe.png"
+import finished from "@/assets/icons/finished.png";
+import backPage from "@/assets/icons/backPage.png";
+import topMenu from "@/assets/icons/topMenu.png";
+import markAsDone from "@/assets/icons/done.png";
+import share from "@/assets/icons/share.png";
+import link from "@/assets/icons/link.png";
+import subscribe from "@/assets/icons/subscribe.png";
 import subscribed from "@/assets/icons/subscribed.png";
-import shareH from "@/assets/icons/share-h.png"
+import shareH from "@/assets/icons/share-h.png";
 import internet from "@/assets/icons/internet.png";
 import sort from "@/assets/icons/sort.png";
 import rss from "@/assets/icons/rss.png";
@@ -41,33 +41,57 @@ import speedRate from "@/assets/icons/speedRate.png";
 import timer from "@/assets/icons/timer.png";
 import apple from "@/assets/icons/apple.png";
 import google from "@/assets/icons/goggle.png";
-import email from "@/assets/icons/email.png"
-import passwordKey from "@/assets/icons/passwordKey.png"
+import email from "@/assets/icons/email.png";
+import passwordKey from "@/assets/icons/passwordKey.png";
 import info_flash from "@/assets/icons/info_flash.png";
-import succ_flash from "@/assets/icons/succ_flash.png"
-import error_flash from "@/assets/icons/error_flash.png"
-import plus from "@/assets/icons/plus.png"
-import minus from "@/assets/icons/minus.png"
-import close_modal from "@/assets/icons/close_modal.png"
-import queue from "@/assets/icons/queue.png"
-import expand from "@/assets/icons/expand.png"
-import send from "@/assets/icons/send.png"
-import redirect from "@/assets/icons/redirect.png"
-import search from "@/assets/icons/search.png"
-import mood from "@/assets/icons/mood.png"
-import pod from "@/assets/icons/pod.png"
-import close from "@/assets/icons/close.png"
-import arc from "@/assets/icons/arc.png"
-import recentplayed from "@/assets/icons/recentPlay.png"
-import playlater from "@/assets/icons/PlayLater.png"
-import filter from "@/assets/icons/filter.png"
-
-
-
+import succ_flash from "@/assets/icons/succ_flash.png";
+import error_flash from "@/assets/icons/error_flash.png";
+import plus from "@/assets/icons/plus.png";
+import minus from "@/assets/icons/minus.png";
+import close_modal from "@/assets/icons/close_modal.png";
+import queue from "@/assets/icons/queue.png";
+import expand from "@/assets/icons/expand.png";
+import send from "@/assets/icons/send.png";
+import redirect from "@/assets/icons/redirect.png";
+import redirect2 from "@/assets/icons/redirect2.png";
+import search from "@/assets/icons/search.png";
+import mood from "@/assets/icons/mood.png";
+import pod from "@/assets/icons/pod.png";
+import close from "@/assets/icons/close.png";
+import arc from "@/assets/icons/arc.png";
+import recentplayed from "@/assets/icons/recentPlay.png";
+import playlater from "@/assets/icons/PlayLater.png";
+import filter from "@/assets/icons/filter.png";
+import random from "@/assets/icons/random.png";
+import premium from "@/assets/icons/premium.png";
+import edit from "@/assets/icons/edit.png";
+import contentSetting from "@/assets/icons/ContentSetting.png";
+import security from "@/assets/icons/security.png";
+import langauge from "@/assets/icons/language.png";
+import live from "@/assets/icons/live.png"
+import liveH from "@/assets/icons/liveH.png";
+import dashboard from "@/assets/icons/dashboard.png";
+import dashboardH from "@/assets/icons/dashboardH.png";
+import analytics from "@/assets/icons/analytics.png";
+import analyticsH from "@/assets/icons/analyticsH.png";
+import logOut from "@/assets/icons/LogOut.png"
 
 
 
 export const icons = {
+  logOut,
+  analytics,
+  analyticsH,
+  dashboard,
+  dashboardH,
+  live,
+  liveH,
+  langauge,
+  security,
+  contentSetting,
+  edit,
+  premium,
+  random,
   filter,
   arc,
   recentplayed,
@@ -77,6 +101,7 @@ export const icons = {
   pod,
   search,
   redirect,
+  redirect2,
   send,
   expand,
   queue,
@@ -130,5 +155,5 @@ export const icons = {
   speedRate,
   timer,
   apple,
-  google
+  google,
 };
