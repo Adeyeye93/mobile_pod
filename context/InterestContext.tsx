@@ -1,6 +1,7 @@
 import { api } from "@/libs/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useAuth } from "./AuthContext";
 
 interface InterestContextType {
   interests: Interest[];
@@ -29,6 +30,11 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
   const [hasInterest, setHasInterest] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isInterestHydrated, setIsInterestHydrated] = useState(false);
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    signOut();
+  }
 
   // Only hydrate from cache, don't set hasInterest yet
   useEffect(() => {
@@ -95,8 +101,13 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
 
       return hasAnyInterests;
     } catch (error) {
-      console.error("Error loading user interests:", error);
-      setHasInterest(false);
+      const err = error as any;
+      if (err.issue && err.reason === "SESSION_EXPIRE") {
+        setHasInterest(false);
+        handleLogout();
+      } else {
+              console.error("Error loading user interests:", error);
+      }
       return false;
     } finally {
       setLoading(false);
@@ -150,7 +161,7 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
   };
 
   const setUserInterestsAsync = async (interests: any) => {
-    setInterests(interests)
+    setInterests(interests);
   };
 
   return (

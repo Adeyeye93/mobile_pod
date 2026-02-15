@@ -7,7 +7,8 @@ export type NavigationState =
   | "splash" // Still loading
   | "Interest" //  Authenticated but no interests
   | "onboarding" // Not authenticated
-  | "main"; // Authenticated with interests
+  | "main"
+  | "OnCreator"; // Authenticated but not a creator
 
 
 
@@ -18,6 +19,7 @@ export function getNavigationState(props: NavigationProps): NavigationState {
     isInterestHydrated,
     hasInterest,
     fontsLoaded,
+    OnCreator,
   } = props;
 
   // Still loading resources
@@ -36,6 +38,12 @@ export function getNavigationState(props: NavigationProps): NavigationState {
   }
 
   // Authenticated with interests
+  
+
+  if (OnCreator) {
+    return "OnCreator";
+  }
+  
   return "main";
 }
 
@@ -49,5 +57,7 @@ export function getInitialRoute(state: NavigationState): string {
       return "/(auth)/onboarding";
     case "main":
       return "/(tabs)";
+    case "OnCreator":
+      return "/(tabs)/creator-dashboard"
   }
 }

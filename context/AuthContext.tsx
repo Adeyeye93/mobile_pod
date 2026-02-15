@@ -2,6 +2,8 @@ import { getAuth, saveAuth, clearAuth } from "@/storage/authStorage";
 import { createContext, useContext, useEffect, useState } from "react";
 import { api } from "@/libs/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useToast } from "@/context/FlashMessageContext";
+
 
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -17,6 +19,7 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const { show } = useToast();
 
   const isAuthenticated = !!user;
 
@@ -65,10 +68,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signOut = async () => {
+  const signOut = async (args?: { message?: string }) => {
     await clearAuth();
     AsyncStorage.clear()
     setUser(null);
+    show({
+      message: args?.message || "Logged out successfully!",
+      type: "info",
+      title: "Logged Out",
+    });
   };
 
 

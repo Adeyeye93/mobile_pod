@@ -29,7 +29,7 @@ import { useEffect } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "./globals.css";
-import { CreatorModeProvider } from "@/context/CreatorModeContext";
+import { CreatorModeProvider, useCreatorMode } from "@/context/CreatorModeContext";
 import CreatorWelcome from "./home/CreatorWelcome";
 import { GuestInviteProvider } from "@/context/GuessInviteContext";
 
@@ -38,6 +38,8 @@ SplashScreen.preventAutoHideAsync();
 function RootLayoutContent() {
   const { isBootstrapping, user, isAuthenticated } = useAuth();
   const { isRSSLinkOpen } = useUI();
+  const { isCreatorMode } = useCreatorMode();
+  
   const {
     hasInterest,
     loadUserInterests,
@@ -67,7 +69,7 @@ function RootLayoutContent() {
           }
           loadUserInterests(user.id);
         } catch (error) {
-          console.error("Error loading interests:", error);
+
           setUserInterests([]);
         } finally {
         }
@@ -91,11 +93,12 @@ function RootLayoutContent() {
     isInterestHydrated,
     hasInterest,
     fontsLoaded: fontsLoaded ?? false,
+    OnCreator: isCreatorMode,
   });
 
   // Handle navigation based on state
   useEffect(() => {
-    if (navState === "splash") return; // Still loading
+    if (navState === "splash") return; 
 
     const targetRoute = getInitialRoute(navState);
     router.replace(targetRoute as any);

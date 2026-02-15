@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "POD",
+    "name": "Echo",
     "slug": "pod_mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.seyi091.pod_mobile",
+      "package": "com.seyi091.pod",
       "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "android.permission.RECORD_AUDIO",
@@ -50,7 +50,6 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone.",
           "audioMode": {
             "playsInSilentModeIOS": true,
             "staysActiveInBackground": true,

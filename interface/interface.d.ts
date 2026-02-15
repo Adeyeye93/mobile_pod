@@ -22,7 +22,7 @@ interface AuthContextValue {
   isBootstrapping: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (payload: any) => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: (args?: { message?: string }) => Promise<void>;
 }
 
 interface FlashMessageOptions {
@@ -83,6 +83,7 @@ interface NavigationProps {
   isInterestHydrated: boolean;
   hasInterest: boolean;
   fontsLoaded: boolean;
+  OnCreator: boolean;
 }
 
 type CustomType =

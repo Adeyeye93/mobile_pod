@@ -9,6 +9,7 @@ import {
   ScrollView,
   NativeModules,
   NativeEventEmitter,
+  PermissionsAndroid,
 } from "react-native";
 
 const { AudioCapture } = NativeModules;
@@ -58,25 +59,51 @@ export default function NativeBroadcaster() {
     ]);
   };
 
-  const startStreaming = async () => {
+  async function startStreaming() {
     try {
-      addLog("Starting native audio capture...");
-      setIsStreaming(true);
-
-      const result = await AudioCapture.startCapture(
-        48000, // sample rate
-        1, // channels (mono)
-        192000, // bitrate (192kbps)
-        "10.0.2.2", // server (Android emulator localhost)
-        1935, // RTMP port
+      // Request permission first
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+        {
+          title: "Microphone Permission",
+          message: "We need access to your microphone",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK",
+        },
       );
 
-      addLog(result);
-    } catch (error: any) {
-      addLog(`Error: ${error.message}`);
-      setIsStreaming(false);
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        setIsStreaming(true);
+        AudioCapture.startCapture(48000, 1, 192000, "10.0.2.2", 1935);
+      } else {
+        setIsStreaming(false);
+        console.log("Permission denied");
+      }
+    } catch (err) {
+      console.warn(err);
     }
-  };
+  }
+
+  // const startStreaming = async () => {
+  //   try {
+  //     addLog("Starting native audio capture...");
+  //     setIsStreaming(true);
+
+  //     const result = await AudioCapture.startCapture(
+  //       48000, // sample rate
+  //       1, // channels (mono)
+  //       192000, // bitrate (192kbps)
+  //       "10.0.2.2", // server (Android emulator localhost)
+  //       1935, // RTMP port
+  //     );
+
+  //     addLog(result);
+  //   } catch (error: any) {
+  //     addLog(`Error: ${error.message}`);
+  //     setIsStreaming(false);
+  //   }
+  // };
 
   const stopStreaming = async () => {
     try {

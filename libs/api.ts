@@ -2,7 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth, updateAuth } from "@/storage/authStorage";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:4000/api";
+const API_BASE_URL = "http://192.168.1.103:4000/api";
 
 let isRefreshing = false;
 let errorMessage;
@@ -93,6 +93,8 @@ api.interceptors.response.use(
         return Promise.reject({
           type: "auth",
           message: "Session expired. Please log in again.",
+          issue: true,
+          reason: "SESSION_EXPIRE"
         });
       }
 
@@ -130,13 +132,14 @@ api.interceptors.response.use(
         return Promise.reject({
           type: "auth",
           message: "Session expired. Please log in again.",
+          issue: true,
+          reason: "SESSION_EXPIRE",
         });
       } finally {
         isRefreshing = false;
       }
     }
 
-    // 4️⃣ Fallback server error
     return Promise.reject({
       type: "server",
       message: error.message || "Something went wrong",
