@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import Comments from "@/components/modals/Comments";
 import MiniPlayer from "@/components/modals/MiniPlayer";
 import Options from "@/components/modals/Options";
@@ -79,29 +80,29 @@ function RootLayoutContent() {
     }
   }, [isAuthenticated, user, isBootstrapping, isInterestHydrated]);
 
-  // Hide splash screen when fonts are ready
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
-
   // Determine navigation state
-  const navState = getNavigationState({
-    isBootstrapping,
-    isAuthenticated,
-    isInterestHydrated,
-    hasInterest,
-    fontsLoaded: fontsLoaded ?? false,
-    OnCreator: isCreatorMode,
-  });
+    const navState = getNavigationState({
+      isBootstrapping,
+      isAuthenticated,
+      isInterestHydrated,
+      hasInterest,
+      fontsLoaded: fontsLoaded ?? false,
+      OnCreator: isCreatorMode,
+    });
+
+
+  
 
   // Handle navigation based on state
   useEffect(() => {
-    if (navState === "splash") return; 
+    if (navState !== "splash"){
+      const targetRoute = getInitialRoute(navState);
+      router.replace(targetRoute as any);
 
-    const targetRoute = getInitialRoute(navState);
-    router.replace(targetRoute as any);
+      setTimeout(() => {
+        SplashScreen.hideAsync();
+      }, 3000);
+    }; 
   }, [navState]);
 
   // Show nothing while loading

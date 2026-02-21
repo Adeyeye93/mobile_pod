@@ -137,7 +137,6 @@ class RtmpAudioPublisher(
     // ---------------------------------------------------
     // Main Loop (ONE read path only)
     // ---------------------------------------------------
-
     private fun captureLoop() {
         val pcmBuffer = ByteArray(SAMPLES_PER_FRAME * channels * 2)
         val info = MediaCodec.BufferInfo()
@@ -260,23 +259,28 @@ class RtmpAudioPublisher(
     // Cleanup
     // ---------------------------------------------------
 
-    private fun cleanup() {
-        try {
-            audioRecord?.stop()
-        } catch (_: Exception) {}
+private fun cleanup() {
+    Log.i(TAG, "Starting cleanup...")
+    try {
+        audioRecord?.stop()
+    } catch (_: Exception) {}
 
-        audioRecord?.release()
+    audioRecord?.release()
+    codec?.stop()
+    codec?.release()
 
-        codec?.stop()
-        codec?.release()
-
+    try {
         fileOutputStream?.flush()
         fileOutputStream?.close()
-
-        socket?.close()
-
-        Log.i(TAG, "Cleanup complete")
+        Log.i(TAG, "File closed successfully at: ${audioFile?.absolutePath}")
+        Log.i(TAG, "File size: ${audioFile?.length()} bytes")
+    } catch (e: Exception) {
+        Log.e(TAG, "Error closing file: $e")
     }
+
+    socket?.close()
+    Log.i(TAG, "Cleanup complete")
+}
 
     private fun getBufferSize(): Int {
         return AudioRecord.getMinBufferSize(

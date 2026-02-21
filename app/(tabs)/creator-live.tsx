@@ -75,7 +75,7 @@ export default function NativeBroadcaster() {
 
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         setIsStreaming(true);
-        AudioCapture.startCapture(48000, 1, 192000, "10.0.2.2", 1935);
+        AudioCapture.startCapture(48000, 1, 192000, "10.99.250.118", 1935);
       } else {
         setIsStreaming(false);
         console.log("Permission denied");
