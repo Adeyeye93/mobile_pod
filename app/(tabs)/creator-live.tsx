@@ -11,17 +11,21 @@ import {
   NativeEventEmitter,
   PermissionsAndroid,
 } from "react-native";
-
+import { api } from "@/libs/api";
 const { AudioCapture } = NativeModules;
 const audioEventEmitter = new NativeEventEmitter(AudioCapture);
+
+const RTMP_HOST = process.env.EXPO_PUBLIC_RTMP_HOST || "10.0.2.2";
+const RTMP_PORT = 1935;
 
 export default function NativeBroadcaster() {
   const [status, setStatus] = useState("Ready");
   const [logs, setLogs] = useState<string[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [streamId, setStreamId] = useState<string | null>(null);
 
   useEffect(() => {
-    const statusSubscription = audioEventEmitter.addListener(
+    const statusSub = audioEventEmitter.addListener(
       "onStatus",
       (message: string) => {
         addLog(`✓ ${message}`);
@@ -29,97 +33,135 @@ export default function NativeBroadcaster() {
       },
     );
 
-    const errorSubscription = audioEventEmitter.addListener(
+    const errorSub = audioEventEmitter.addListener(
       "onError",
       (error: string) => {
-        addLog(`✗ Error: ${error}`);
+        addLog(`✗ ${error}`);
         setStatus(`Error: ${error}`);
+        setIsStreaming(false);
       },
     );
 
-    const framesSubscription = audioEventEmitter.addListener(
+    const framesSub = audioEventEmitter.addListener(
       "onFramesSent",
-      (count: string) => {
-        addLog(`Frames sent: ${count}`);
-      },
+      (count: string) => addLog(`Frames sent: ${count}`),
     );
 
     return () => {
-      statusSubscription.remove();
-      errorSubscription.remove();
-      framesSubscription.remove();
+      statusSub.remove();
+      errorSub.remove();
+      framesSub.remove();
     };
   }, []);
 
   const addLog = (message: string) => {
     console.log(message);
     setLogs((prev) => [
-      ...prev,
       `[${new Date().toLocaleTimeString()}] ${message}`,
+      ...prev,
     ]);
   };
 
-  async function startStreaming() {
+  // ---------------------------------------------------------------------------
+  // API calls — token attached automatically by your axios interceptor
+  // ---------------------------------------------------------------------------
+
+  const scheduleAndFetchStreamKey = async (): Promise<string> => {
+    addLog("Scheduling stream...");
+
+    const scheduleRes = await api.post("/streams", {
+      title: "Test Broadcast",
+      category: "music",
+      scheduled_start_time: new Date().toISOString(),
+    });
+
+    const newStreamId = scheduleRes.data.stream.id;
+    setStreamId(newStreamId);
+    addLog(`Stream scheduled — id: ${newStreamId}`);
+
+    addLog("Fetching stream key...");
+    const keyRes = await api.get(`/streams/${newStreamId}/stream_key`);
+
+    addLog("Stream key received");
+    return keyRes.data.stream_key;
+  };
+
+  // ---------------------------------------------------------------------------
+  // Start
+  // ---------------------------------------------------------------------------
+
+  const startStreaming = async () => {
     try {
-      // Request permission first
+      setIsStreaming(true);
+      addLog("Requesting microphone permission...");
+
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
         {
           title: "Microphone Permission",
-          message: "We need access to your microphone",
+          message: "We need access to your microphone to broadcast",
           buttonNeutral: "Ask Me Later",
           buttonNegative: "Cancel",
           buttonPositive: "OK",
         },
       );
 
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        setIsStreaming(true);
-        AudioCapture.startCapture(48000, 1, 192000, "10.99.250.118", 1935);
-      } else {
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        addLog("✗ Microphone permission denied");
         setIsStreaming(false);
-        console.log("Permission denied");
+        return;
       }
-    } catch (err) {
-      console.warn(err);
+
+      addLog("✓ Permission granted");
+
+      const streamKey = await scheduleAndFetchStreamKey();
+
+      addLog(`Connecting to ${RTMP_HOST}:${RTMP_PORT}...`);
+
+      const result = await AudioCapture.startCapture(
+        48000,
+        1,
+        192000,
+        RTMP_HOST,
+        RTMP_PORT,
+        streamKey,
+      );
+
+      addLog(result);
+    } catch (err: any) {
+      const message = err?.message ?? err?.errors ?? "Unknown error";
+      addLog(`✗ ${message}`);
+      setStatus(`Error: ${message}`);
+      setIsStreaming(false);
     }
-  }
+  };
 
-  // const startStreaming = async () => {
-  //   try {
-  //     addLog("Starting native audio capture...");
-  //     setIsStreaming(true);
-
-  //     const result = await AudioCapture.startCapture(
-  //       48000, // sample rate
-  //       1, // channels (mono)
-  //       192000, // bitrate (192kbps)
-  //       "10.0.2.2", // server (Android emulator localhost)
-  //       1935, // RTMP port
-  //     );
-
-  //     addLog(result);
-  //   } catch (error: any) {
-  //     addLog(`Error: ${error.message}`);
-  //     setIsStreaming(false);
-  //   }
-  // };
+  // ---------------------------------------------------------------------------
+  // Stop
+  // ---------------------------------------------------------------------------
 
   const stopStreaming = async () => {
     try {
-      addLog("Stopping audio capture...");
+      addLog("Stopping broadcast...");
       const result = await AudioCapture.stopCapture();
       addLog(result);
       setIsStreaming(false);
-    } catch (error: any) {
-      addLog(`Error: ${error.message}`);
+      setStreamId(null);
+    } catch (err: any) {
+      addLog(`✗ ${err.message}`);
     }
   };
+
+  // ---------------------------------------------------------------------------
+  // UI
+  // ---------------------------------------------------------------------------
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Native Audio Broadcaster</Text>
       <Text style={styles.statusText}>{status}</Text>
+
+      {streamId && <Text style={styles.streamIdText}>Stream: {streamId}</Text>}
 
       <View style={styles.buttonContainer}>
         <Button
@@ -142,11 +184,7 @@ export default function NativeBroadcaster() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-    padding: 20,
-  },
+  container: { flex: 1, backgroundColor: "#000", padding: 20 },
   title: {
     color: "#fff",
     fontSize: 24,
@@ -157,13 +195,18 @@ const styles = StyleSheet.create({
   statusText: {
     color: "#51cf66",
     fontSize: 16,
-    marginBottom: 20,
+    marginBottom: 8,
     textAlign: "center",
     fontWeight: "bold",
   },
-  buttonContainer: {
-    marginBottom: 20,
+  streamIdText: {
+    color: "#888",
+    fontSize: 11,
+    textAlign: "center",
+    marginBottom: 16,
+    fontFamily: "monospace",
   },
+  buttonContainer: { marginBottom: 20 },
   logsContainer: {
     flex: 1,
     backgroundColor: "#1a1a1a",

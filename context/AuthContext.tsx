@@ -68,6 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  
+
   const signOut = async (args?: { message?: string }) => {
     await clearAuth();
     AsyncStorage.clear()

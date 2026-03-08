@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.*
 import android.os.Process
 import android.util.Log
+import com.seyi091.pod_mobile.rtmp.RtmpAmfCommands
 import com.seyi091.pod_mobile.rtmp.RtmpHandshake
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -12,12 +13,13 @@ import java.io.OutputStream
 import java.net.Socket
 
 class RtmpAudioPublisher(
-    private val host: String,
-    private val port: Int,
-    private val sampleRate: Int = 44100,
-    private val channels: Int = 1,
-    private val bitrate: Int = 128_000,
-    private val context: Context
+        private val host: String,
+        private val port: Int,
+        private val streamKey: String, // ← added: required for backend auth
+        private val sampleRate: Int = 44100,
+        private val channels: Int = 1,
+        private val bitrate: Int = 128_000,
+        private val context: Context
 ) : Thread() {
 
     companion object {
@@ -45,17 +47,28 @@ class RtmpAudioPublisher(
         try {
             connect()
 
+            // Step 1 — RTMP handshake (unchanged)
             val handshake = RtmpHandshake(socket!!)
             handshake.perform()
 
+            // Step 2 — AMF commands: connect → createStream → publish
+            // The backend sits in :pending state until it receives the
+            // publish command with a valid stream key. Nothing works without this.
+            val amf =
+                    RtmpAmfCommands(
+                            input = socket!!.getInputStream(),
+                            output = socket!!.getOutputStream()
+                    )
+            amf.perform(host = host, streamKey = streamKey)
+
+            // Step 3 — audio capture and encoding
             initAudio()
             initEncoder()
 
             running = true
             captureLoop()
-
         } catch (e: Exception) {
-            Log.e(TAG, "Fatal error", e)
+            Log.e(TAG, "Fatal error in publisher", e)
         } finally {
             cleanup()
         }
@@ -83,24 +96,21 @@ class RtmpAudioPublisher(
         val bufferSize = getBufferSize()
 
         val channelConfig =
-            if (channels == 2)
-                AudioFormat.CHANNEL_IN_STEREO
-            else
-                AudioFormat.CHANNEL_IN_MONO
+                if (channels == 2) AudioFormat.CHANNEL_IN_STEREO else AudioFormat.CHANNEL_IN_MONO
 
-        audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.MIC,
-            sampleRate,
-            channelConfig,
-            AudioFormat.ENCODING_PCM_16BIT,
-            bufferSize
-        )
+        audioRecord =
+                AudioRecord(
+                        MediaRecorder.AudioSource.MIC,
+                        sampleRate,
+                        channelConfig,
+                        AudioFormat.ENCODING_PCM_16BIT,
+                        bufferSize
+                )
 
         if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
             throw IllegalStateException("AudioRecord init failed")
         }
 
-        // Create raw PCM file
         audioFile = File(context.getExternalFilesDir(null), "audio_capture.pcm")
         fileOutputStream = FileOutputStream(audioFile)
 
@@ -114,38 +124,37 @@ class RtmpAudioPublisher(
     // ---------------------------------------------------
 
     private fun initEncoder() {
-        val format = MediaFormat.createAudioFormat(
-            MediaFormat.MIMETYPE_AUDIO_AAC,
-            sampleRate,
-            channels
-        ).apply {
-            setInteger(MediaFormat.KEY_BIT_RATE, bitrate)
-            setInteger(
-                MediaFormat.KEY_AAC_PROFILE,
-                MediaCodecInfo.CodecProfileLevel.AACObjectLC
-            )
-        }
+        val format =
+                MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, channels)
+                        .apply {
+                            setInteger(MediaFormat.KEY_BIT_RATE, bitrate)
+                            setInteger(
+                                    MediaFormat.KEY_AAC_PROFILE,
+                                    MediaCodecInfo.CodecProfileLevel.AACObjectLC
+                            )
+                        }
 
         codec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
         codec!!.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         codec!!.start()
 
         soundHeader =
-            ((10 shl 4) or (3 shl 2) or (1 shl 1) or (if (channels == 2) 1 else 0)).toByte()
+                ((10 shl 4) or (3 shl 2) or (1 shl 1) or (if (channels == 2) 1 else 0)).toByte()
     }
 
     // ---------------------------------------------------
-    // Main Loop (ONE read path only)
+    // Main Loop
     // ---------------------------------------------------
+
     private fun captureLoop() {
         val pcmBuffer = ByteArray(SAMPLES_PER_FRAME * channels * 2)
         val info = MediaCodec.BufferInfo()
 
         while (running) {
-
             val read = audioRecord!!.read(pcmBuffer, 0, pcmBuffer.size)
             if (read <= 0) continue
 
+            // Peak level logging — useful for UI audio meter later
             var max = 0
             var i = 0
             while (i < read - 1) {
@@ -158,35 +167,23 @@ class RtmpAudioPublisher(
             }
             Log.d("AUDIO_LEVEL", "peak=$max")
 
-            // ✅ write RAW PCM
             fileOutputStream?.write(pcmBuffer, 0, read)
 
-            // ✅ send to encoder
             val inIndex = codec!!.dequeueInputBuffer(10_000)
             if (inIndex >= 0) {
                 codec!!.getInputBuffer(inIndex)?.apply {
                     clear()
                     put(pcmBuffer, 0, read)
                 }
-
-                codec!!.queueInputBuffer(
-                    inIndex,
-                    0,
-                    read,
-                    timestampMs * 1000L,
-                    0
-                )
-
+                codec!!.queueInputBuffer(inIndex, 0, read, timestampMs * 1000L, 0)
                 timestampMs += read * 1000 / (sampleRate * channels * 2)
             }
 
-            // ✅ drain encoder
             var outIndex = codec!!.dequeueOutputBuffer(info, 0)
             while (outIndex >= 0) {
-
                 val buffer = codec!!.getOutputBuffer(outIndex)
-                if (buffer != null && info.size > 0) {
 
+                if (buffer != null && info.size > 0) {
                     buffer.position(info.offset)
                     buffer.limit(info.offset + info.size)
 
@@ -195,7 +192,6 @@ class RtmpAudioPublisher(
                         buffer.get(config)
                         sendAacSequenceHeader(config)
                         sentConfig = true
-
                     } else if (sentConfig) {
                         val frame = ByteArray(info.size)
                         buffer.get(frame)
@@ -210,7 +206,7 @@ class RtmpAudioPublisher(
     }
 
     // ---------------------------------------------------
-    // RTMP
+    // RTMP audio messages (unchanged from original)
     // ---------------------------------------------------
 
     private fun sendAacSequenceHeader(config: ByteArray) {
@@ -234,18 +230,22 @@ class RtmpAudioPublisher(
 
         baos.write(0x04)
 
-        baos.write(byteArrayOf(
-            ((timestampMs shr 16) and 0xFF).toByte(),
-            ((timestampMs shr 8) and 0xFF).toByte(),
-            (timestampMs and 0xFF).toByte()
-        ))
+        baos.write(
+                byteArrayOf(
+                        ((timestampMs shr 16) and 0xFF).toByte(),
+                        ((timestampMs shr 8) and 0xFF).toByte(),
+                        (timestampMs and 0xFF).toByte()
+                )
+        )
 
         val len = payload.size
-        baos.write(byteArrayOf(
-            ((len shr 16) and 0xFF).toByte(),
-            ((len shr 8) and 0xFF).toByte(),
-            (len and 0xFF).toByte()
-        ))
+        baos.write(
+                byteArrayOf(
+                        ((len shr 16) and 0xFF).toByte(),
+                        ((len shr 8) and 0xFF).toByte(),
+                        (len and 0xFF).toByte()
+                )
+        )
 
         baos.write(8)
         baos.write(byteArrayOf(1, 0, 0, 0))
@@ -259,37 +259,33 @@ class RtmpAudioPublisher(
     // Cleanup
     // ---------------------------------------------------
 
-private fun cleanup() {
-    Log.i(TAG, "Starting cleanup...")
-    try {
-        audioRecord?.stop()
-    } catch (_: Exception) {}
+    private fun cleanup() {
+        Log.i(TAG, "Starting cleanup...")
+        try {
+            audioRecord?.stop()
+        } catch (_: Exception) {}
 
-    audioRecord?.release()
-    codec?.stop()
-    codec?.release()
+        audioRecord?.release()
+        codec?.stop()
+        codec?.release()
 
-    try {
-        fileOutputStream?.flush()
-        fileOutputStream?.close()
-        Log.i(TAG, "File closed successfully at: ${audioFile?.absolutePath}")
-        Log.i(TAG, "File size: ${audioFile?.length()} bytes")
-    } catch (e: Exception) {
-        Log.e(TAG, "Error closing file: $e")
+        try {
+            fileOutputStream?.flush()
+            fileOutputStream?.close()
+            Log.i(TAG, "PCM file saved: ${audioFile?.absolutePath} (${audioFile?.length()} bytes)")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing file: $e")
+        }
+
+        socket?.close()
+        Log.i(TAG, "Cleanup complete")
     }
-
-    socket?.close()
-    Log.i(TAG, "Cleanup complete")
-}
 
     private fun getBufferSize(): Int {
         return AudioRecord.getMinBufferSize(
-            sampleRate,
-            if (channels == 2)
-                AudioFormat.CHANNEL_IN_STEREO
-            else
-                AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT
+                sampleRate,
+                if (channels == 2) AudioFormat.CHANNEL_IN_STEREO else AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT
         )
     }
 }
