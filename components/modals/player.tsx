@@ -39,7 +39,7 @@ export default function PlayerBottomSheet() {
     <>
       <BottomSheet
         ref={bottomSheetRef}
-        snapPoints={[0.1, WINDOW_HEIGHT]}
+        snapPoints={[0.00000000000001, WINDOW_HEIGHT]}
         onAnimate={handleAnimate}
         enablePanDownToClose={scrollEnabled}
         enableContentPanningGesture={scrollEnabled}

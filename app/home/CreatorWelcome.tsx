@@ -51,15 +51,15 @@ const CreatorWelcome = () => {
           >
             {/* App title */}
             <Text className="text-primary font-MonBold text-3xl mb-8 tracking-wider">
-              WELCOME
+              ~ Echo ~
             </Text>
 
             {/* Hero Image - Microphone/Podcast themed */}
             <Image
-              source={images.slide2} // Replace with your podcast image
+              source={images.Live} // Replace with your podcast image
               style={{
-                width: 500,
-                height: 500,
+                width: 450,
+                height: 450,
                 resizeMode: "contain",
                 marginBottom: 40,
               }}
@@ -82,7 +82,7 @@ const CreatorWelcome = () => {
             {/* Action buttons */}
             <View className="flex-row">
               {/* Primary button */}
-              <View className="flex-row items-center">
+              <View className="flex-row items-center justify-center w-full">
                 <LottieView
                   source={animationsFile.preloader}
                   autoPlay
@@ -94,35 +94,8 @@ const CreatorWelcome = () => {
                     padding: 0,
                   }}
                 />
-                <Text className="text-white font-MonBold">Organizing your data...</Text>
+                {/* <Text className="text-white font-MonBold">Organizing your data...</Text> */}
               </View>
-            </View>
-
-            {/* Audio wave visualizer lines (decorative) */}
-            <View className="absolute -top-[10rem] left-6 flex-row gap-1">
-              {[1, 2, 3, 4, 5].map((line) => (
-                <View
-                  key={line}
-                  className="w-1 bg-primary rounded"
-                  style={{
-                    height: 10 + Math.random() * 20,
-                    opacity: 0.6,
-                  }}
-                />
-              ))}
-            </View>
-
-            <View className="absolute -top-[10rem] right-6 flex-row gap-1">
-              {[1, 2, 3, 4, 5].map((line) => (
-                <View
-                  key={line}
-                  className="w-1 bg-primary rounded"
-                  style={{
-                    height: 10 + Math.random() * 20,
-                    opacity: 0.6,
-                  }}
-                />
-              ))}
             </View>
           </Animated.View>
         </View>

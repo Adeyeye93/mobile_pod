@@ -24,8 +24,7 @@ export function AudioPlayerProvider({
   const player = useAudioPlayer();
   const status = useAudioPlayerStatus(player);
   const isActive =
-    status.duration > 0 && (status.playing || status.currentTime > 0);
-
+  status.duration > 0 && (status.playing || status.currentTime > 0);
   const [rate, setRateState] = useState(1);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 

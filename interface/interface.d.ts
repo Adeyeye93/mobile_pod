@@ -75,6 +75,7 @@ interface SheetProps {
   handleIndicatorColor?: string;
   onClose?: () => void;
   enablePanDownToClose?: boolean;
+  showCloseButton?: boolean;
 }
 
 interface NavigationProps {
@@ -191,4 +192,13 @@ interface SendInviteRequest {
   scheduledStartTime: Date;
   role: "guest" | "co-host";
   message?: string;
+}
+
+type Visibility = "public" | "private";
+
+interface VisibilityOption {
+  key: Visibility;
+  label: string;
+  description: string;
+  icon: any;
 }

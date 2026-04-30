@@ -1,25 +1,23 @@
-import { View, Text, Pressable, Image } from "react-native";
-import { useEffect, useState } from "react";
 import PageHead from "@/components/PageHead";
-import { icons } from "@/constants/icons";
 import SearchHeader from "@/components/search/SearchHeader";
+import History from "@/components/search/history";
 import Options from "@/components/search/options";
+import { icons } from "@/constants/icons";
 import { api } from "@/libs/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import History from "@/components/search/history";
+import { useEffect, useState } from "react";
+import { Image, Pressable, Text, View } from "react-native";
 // import { useRouter } from "expo-router";
+import { CustomModal } from "@/components/modals/Modal";
+import Preloader from "@/components/screen/preloader";
 import Search from "../discover/search";
-import { images } from "@/constants/image";
-import { CustomModal }  from "@/components/modals/Modal";
-import Preloader from "@/components/preloader";
 
 const Discover = () => {
   const [interests, setInterests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMoodLoading, setIsMoodLoading] = useState(true);
-  const [mood, setMood] = useState([])
+  const [mood, setMood] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-
 
   useEffect(() => {
     const loadInterests = async () => {
@@ -41,7 +39,7 @@ const Discover = () => {
 
         await AsyncStorage.setItem(
           "userInterests",
-          JSON.stringify(interestsData)
+          JSON.stringify(interestsData),
         );
       } catch (error) {
         console.error("Error loading interests:", error);
@@ -54,76 +52,68 @@ const Discover = () => {
     loadInterests();
   }, []);
 
-    useEffect(() => {
-      const loadMoods = async () => {
-        try {
-          setIsMoodLoading(true);
+  useEffect(() => {
+    const loadMoods = async () => {
+      try {
+        setIsMoodLoading(true);
 
-          const cached = await AsyncStorage.getItem("userMoods");
-          if (cached) {
-            setMood(JSON.parse(cached));
-            setIsMoodLoading(false);
-            return;
-          }
-
-          const response = await api.get("/get_mood");
-          const moodsData = response.data.data || response.data.interests || [];
-
-          setMood(moodsData);
-
-          await AsyncStorage.setItem("userMoods", JSON.stringify(moodsData));
-        } catch (error) {
-          console.error("Error loading interests:", error);
-          setMood([]);
-        } finally {
+        const cached = await AsyncStorage.getItem("userMoods");
+        if (cached) {
+          setMood(JSON.parse(cached));
           setIsMoodLoading(false);
+          return;
         }
-      };
 
-      loadMoods();
-    }, []);
+        const response = await api.get("/get_mood");
+        const moodsData = response.data.data || response.data.interests || [];
 
-    
-   if (isMoodLoading && isLoading) {
-     return (
-      <Preloader />
-     )
-   } else {
-      return (
-        <View className="flex-1 bg-background px-4 pb-16">
-          <PageHead
-            title="Discover"
-            has_profile
-            has_menu
-          />
-          <Pressable
-            onPress={() => setModalVisible(true)}
-            className="w-full h-16 bg-[#1f222b] rounded-2xl flex-row items-center justify-start gap-4 pl-6"
-          >
-            <Image tintColor="gray" className="w-6 h-6" source={icons.search} />
-            <Text className="text-[gray] font-MonMedium">Search</Text>
-          </Pressable>
+        setMood(moodsData);
 
-          <SearchHeader icon={icons.pod} title="Categories" />
-          <Options datas={interests} />
-          <SearchHeader icon={icons.mood} title="Mood" />
-          <Options datas={mood} />
-          <SearchHeader icon={icons.speedRate} title="Resent Searchs" />
-          <History />
+        await AsyncStorage.setItem("userMoods", JSON.stringify(moodsData));
+      } catch (error) {
+        console.error("Error loading interests:", error);
+        setMood([]);
+      } finally {
+        setIsMoodLoading(false);
+      }
+    };
 
-          <CustomModal
-            visible={modalVisible}
-            onClose={() => setModalVisible(false)}
-            title="Search"
-            showCloseButton={true}
-            animationType="fade"
-          >
-            <Search />
-          </CustomModal>
-        </View>
-      );
+    loadMoods();
+  }, []);
 
-   }
+  if (isMoodLoading && isLoading) {
+    return <Preloader />;
+  } else {
+    return (
+      <View className="flex-1 bg-background px-4 pb-16">
+        <PageHead title="Discover" has_profile has_menu />
+        <Pressable
+          onPress={() => setModalVisible(true)}
+          className="w-full h-16 bg-[#1f222b] rounded-2xl flex-row items-center justify-start gap-4 pl-6"
+        >
+          <Image tintColor="gray" className="w-6 h-6" source={icons.search} />
+          <Text className="text-[gray] font-MonMedium">Search</Text>
+        </Pressable>
+
+        <SearchHeader icon={icons.pod} title="Categories" />
+        <Options datas={interests} />
+        <SearchHeader icon={icons.mood} title="Mood" />
+        <Options datas={mood} />
+        <SearchHeader icon={icons.speedRate} title="Resent Searchs" />
+        <History />
+
+        <CustomModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          title="Search"
+          showCloseButton={true}
+          animationType="fade"
+        >
+          <Search />
+        </CustomModal>
+      </View>
+    );
+  }
 };
 
 export default Discover;

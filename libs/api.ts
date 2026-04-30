@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth, updateAuth } from "@/storage/authStorage";
 
 const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || "http://10.99.250.118:4000/api/";
+  process.env.EXPO_PUBLIC_API_URL;
 
 let isRefreshing = false;
 let errorMessage;

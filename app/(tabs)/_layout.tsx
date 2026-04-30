@@ -50,12 +50,12 @@ export default function TabsLayout() {
             href: null,
           }}
         />
-        <Tabs.Screen
+        {/* <Tabs.Screen
           name="creator-analytics"
           options={{
             href: null,
           }}
-        />
+        /> */}
         <Tabs.Screen
           name="creator-profile"
           options={{
@@ -194,7 +194,7 @@ export default function TabsLayout() {
           }}
         />
 
-        <Tabs.Screen
+        {/* <Tabs.Screen
           name="creator-analytics"
           options={{
             headerShown: false,
@@ -207,7 +207,7 @@ export default function TabsLayout() {
               />
             ),
           }}
-        />
+        /> */}
 
         <Tabs.Screen
           name="creator-profile"

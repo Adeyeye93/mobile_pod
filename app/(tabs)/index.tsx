@@ -36,7 +36,7 @@ export default function Index() {
 };
 
   return (
-    <View className="flex-1 bg-background px-4 pb-16">
+    <View className="flex-1 bg-background px-4 pb">
       <View className="w-full p-2 flex flex-row items-center justify-between mt-12">
         <View className="flex-1 flex-row items-center h-full gap-6">
           <PP />

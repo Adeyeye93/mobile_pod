@@ -4,15 +4,19 @@ import {
   useContext,
   useCallback,
   ReactNode,
+  useState,
 } from "react";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useUI } from "@/context/UIContext";
+import { Image, Pressable, View } from "react-native";
+import { icons } from "@/constants/icons";
 
 // Type for sheet context
-interface SheetContextType {
+interface SheetContextType<T = any> {
   ref: React.RefObject<BottomSheet | null>;
+  data: T | null;
+  setData: React.Dispatch<React.SetStateAction<T | null>>;
 }
-
 // Generic Sheet Context Factory
 function createSheetContext() {
   const SheetContext = createContext<SheetContextType | null>(null);
@@ -25,10 +29,14 @@ function createSheetContext() {
     return context;
   }
 
-  function SheetProvider({ children }: { children: ReactNode }) {
+  function SheetProvider<T>({ children }: { children: ReactNode }) {
     const ref = useRef<BottomSheet>(null);
+    const [data, setData] = useState<T | null>(null);
+
     return (
-      <SheetContext.Provider value={{ ref }}>{children}</SheetContext.Provider>
+      <SheetContext.Provider value={{ ref, data, setData }}>
+        {children}
+      </SheetContext.Provider>
     );
   }
 
@@ -43,6 +51,43 @@ export const {
 } = createSheetContext();
 
 export const {
+  SheetContext: LiveRecorderSheetContext,
+  useSheetContext: useLiveRecorderSheet,
+  SheetProvider: LiveRecorderSheetProvider,
+} = createSheetContext();
+
+export const {
+  SheetContext: LiveListenerContext,
+  useSheetContext: useLiveListenerSheet,
+  SheetProvider: LiveListenerSheetProvider,
+} = createSheetContext();
+
+
+export const {
+  SheetContext: CategorySheetContext,
+  useSheetContext: useCategorySheet,
+  SheetProvider: CategorySheetProvider,
+} = createSheetContext();
+
+export const {
+  SheetContext: InviteSheetContext,
+  useSheetContext: useInviteSheet,
+  SheetProvider: InviteSheetProvider,
+} = createSheetContext();
+
+export const {
+  SheetContext: StreamTimeSheetContext,
+  useSheetContext: useStreamTimeSheet,
+  SheetProvider: StreamTimeSheetProvider,
+} = createSheetContext();
+
+export const {
+  SheetContext: LivePrivacySheetContext,
+  useSheetContext: useLivePrivacySheet,
+  SheetProvider: LivePrivacySheetProvider,
+} = createSheetContext();
+
+export const {
   SheetContext: OptionsSheetContext,
   useSheetContext: useOptionsSheet,
   SheetProvider: OptionsSheetProvider,
@@ -54,7 +99,6 @@ export const {
   SheetProvider: SearchSheetProvider,
 } = createSheetContext();
 
-
 export function Sheet({
   children,
   context,
@@ -64,6 +108,7 @@ export function Sheet({
   borderTopRightRadius = 35,
   onClose,
   enablePanDownToClose = true,
+  showCloseButton = true
 }: SheetProps) {
   const sheetContext = useContext(context);
   if (!sheetContext) {
@@ -82,16 +127,20 @@ export function Sheet({
     (index: number) => {
       setIsSheetOpen(index > 0);
     },
-    [setIsSheetOpen]
+    [setIsSheetOpen],
   );
 
   return (
     <BottomSheet
+      enablePanDownToClose={false}
+      enableHandlePanningGesture={false}
+      enableContentPanningGesture={false}
+      enableDynamicSizing={false}
+      animateOnMount={true}
       ref={bottomSheetRef}
       snapPoints={snapPoints}
       onChange={handleSheetChanges}
       onAnimate={handleAnimate}
-      enablePanDownToClose={enablePanDownToClose}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
       backgroundStyle={{
@@ -101,7 +150,24 @@ export function Sheet({
       }}
       handleComponent={() => null}
     >
-      <BottomSheetView className="bg-background flex-1  h-full">
+      <BottomSheetView className="flex-1  h-full bg-[#111827] border-t border-gray-700">
+        {showCloseButton && <View style={{ position: "relative" }}>
+          <Pressable
+            onPress={() => bottomSheetRef.current?.close()}
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              zIndex: 50,
+            }}
+            className="p-1 rounded-full"
+          >
+            <Image
+              source={icons.close_modal}
+              style={{ width: 20, height: 20 }}
+            />
+          </Pressable>
+        </View>}
         {children}
       </BottomSheetView>
     </BottomSheet>

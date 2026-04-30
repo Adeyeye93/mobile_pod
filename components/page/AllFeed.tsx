@@ -13,6 +13,7 @@ import SectionHeader from "@/components/SectionHeader";
 import Livecard from "@/components/livecard";
 import Subscription from "@/components/subscription";
 import { images } from '@/constants/image';
+import { useLiveStreams } from "@/hook/useLiveStreams";
 
 
 let SectionTopLevelClass = "flex-1 h-fit mt-8";
@@ -20,6 +21,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 
 const AllFeed = () => {
+  const { streams, error, loading } = useLiveStreams();
+
   return (
     <ScrollView
       className="flex-1"
@@ -86,18 +89,16 @@ const AllFeed = () => {
           snapToInterval={SCREEN_WIDTH * 0.9 + 16}
           decelerationRate="fast"
           showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 8 }}
         >
-          <View style={{ width: SCREEN_WIDTH * 0.9, marginRight: 10 }}>
-            <Livecard />
-          </View>
+          {error && <View />}
+          {loading && <View />}
 
-          <View style={{ width: SCREEN_WIDTH * 0.9, marginRight: 10 }}>
-            <Livecard />
-          </View>
-
-          <View style={{ width: SCREEN_WIDTH * 0.9 }}>
-            <Livecard />
-          </View>
+          {streams.map((stream) => (
+            <View key={stream.id} style={{ width: SCREEN_WIDTH * 0.9 }}>
+              <Livecard stream={stream} /> 
+            </View>
+          ))}
         </ScrollView>
       </View>
     </ScrollView>

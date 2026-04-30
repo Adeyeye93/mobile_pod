@@ -1,33 +1,65 @@
 import { View, Text, Image, Pressable } from "react-native";
 import { icons } from "@/constants/icons";
-import { images } from "@/constants/image";
 import { LivePulse } from "./LivePulse";
 import CreatorCover from "./CreatorCover";
 import LiveChannelName from "./LiveChannelName";
-
+import { useRouter } from "expo-router";
+import type { LiveStream } from "@/hook/useLiveStreams";
 
 const timeClass = "text-textSecondary font-MonMedium text-sm";
-const creators = [
-  images.profile1,
-  images.profile2,
-  images.profile3,
-  images.profile4, // ignored if >3
-];
-
 const listenerImageClass = "w-8 h-8 rounded-full -ml-3 border border-[#1E4D5F]";
+
 interface LiveCardProps {
-   minimal?: boolean
-   IsSuggested?: boolean
-   Suggestion?: string
+  stream: LiveStream;
+  minimal?: boolean;
+  IsSuggested?: boolean;
+  Suggestion?: string;
 }
 
-const Livecard = ({ minimal, IsSuggested, Suggestion }: LiveCardProps) => {
+const Livecard = ({
+  stream,
+  minimal,
+  IsSuggested,
+  Suggestion,
+}: LiveCardProps) => {
+  const router = useRouter();
+
+  const handleConnect = () => {
+    router.push({
+      pathname: "/live/Listener",
+      params: {
+        streamId: stream.id,
+        title: stream.title,
+        creatorName: stream.creator_name ?? "Unknown",
+        creatorAvatar: stream.creator_avatar ?? "",
+        masterUrl: stream.master_url,
+      },
+    });
+  };
+
+  // Format duration from actual_start_time to now
+  const duration = (() => {
+    if (!stream.actual_start_time) return null;
+    const start = new Date(stream.actual_start_time).getTime();
+    const elapsed = Math.floor((Date.now() - start) / 1000);
+    const h = Math.floor(elapsed / 3600);
+    const m = Math.floor((elapsed % 3600) / 60);
+    const s = elapsed % 60;
+    if (h > 0)
+      return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return `${m}:${String(s).padStart(2, "0")} mins`;
+  })();
+
+  const viewerLabel =
+    stream.viewer_count >= 1000
+      ? `+${(stream.viewer_count / 1000).toFixed(1)}k`
+      : `${stream.viewer_count}`;
 
   return (
     <View className="flex-col gap-2 mt-2 w-full">
-      {/* LIVE LABEL (SHOUT) */}
+      {/* LIVE LABEL */}
       {minimal ? (
-        <View className="flex-row items-center gap-2 px-1"></View>
+        <View className="flex-row items-center gap-2 px-1" />
       ) : (
         <View className="flex-row items-center gap-2 px-1">
           <LivePulse />
@@ -38,28 +70,24 @@ const Livecard = ({ minimal, IsSuggested, Suggestion }: LiveCardProps) => {
       )}
 
       {/* CARD */}
-      <Pressable className="w-full rounded-xl bg-[#1E4D5F] px-3 py-3">
-        {IsSuggested ? (
-          <Text className="text-xs font-semibold tracking-wide text-cyan-400 mb-4">
-            {Suggestion ? (
-              <Text className="text-xs font-semibold tracking-wide text-cyan-400 uppercase">
-                {Suggestion}
-              </Text>
-            ) : (
-              <Text className="text-xs font-semibold tracking-wide text-cyan-400">
-                SUGGESTED BY POD
-              </Text>
-            )}
+      <Pressable
+        className="w-full rounded-xl bg-[#1E4D5F] px-3 py-3"
+        onPress={handleConnect}
+      >
+        {IsSuggested && (
+          <Text className="text-xs font-semibold tracking-wide text-cyan-400 mb-4 uppercase">
+            {Suggestion ?? "SUGGESTED BY POD"}
           </Text>
-        ) : (
-          ""
         )}
+
         {/* TOP SECTION */}
         <View className="flex-row justify-between items-start">
           <View className="flex-row gap-4 flex-1">
-            {/* COVER */}
+            {/* COVER — pass creator avatar as prop */}
             <CreatorCover
-              creators={creators}
+              creators={
+                stream.creator_avatar ? [{ uri: stream.creator_avatar }] : []
+              }
             />
 
             {/* TITLE + META */}
@@ -68,45 +96,47 @@ const Livecard = ({ minimal, IsSuggested, Suggestion }: LiveCardProps) => {
                 numberOfLines={2}
                 className="font-MonBold text-textPrimary text-lg"
               >
-                Holy Fire (Live) radio
+                {stream.title}
               </Text>
 
-              <LiveChannelName />
+              <LiveChannelName
+                channelNames={[stream.creator_name ?? stream.channel_id]}
+              />
 
               <View className="flex-row items-center gap-2 mt-1">
-                <Text className={timeClass}>Pod</Text>
-                <Text className={timeClass}>•</Text>
-                <Text className={timeClass}>52:27 mins</Text>
+                <Text className={timeClass}>{stream.category}</Text>
+                {duration && (
+                  <>
+                    <Text className={timeClass}>•</Text>
+                    <Text className={timeClass}>{duration}</Text>
+                  </>
+                )}
               </View>
             </View>
           </View>
 
-          {/* MENU */}
           <Image source={icons.menu} className="w-6 h-6 opacity-80" />
         </View>
 
-        {/* LISTENERS (WHISPER) */}
+        {/* LISTENERS */}
         <View className="flex-row items-center gap-2 mt-4">
+          {/* Static avatars — replace with real listener avatars if available */}
           <View className="flex-row items-center">
-            <Image source={images.profile1} className="w-8 h-8 rounded-full" />
-            <Image source={images.profile2} className={listenerImageClass} />
-            <Image source={images.profile3} className={listenerImageClass} />
-            <Image source={images.profile4} className={listenerImageClass} />
-            <Image source={images.profile5} className={listenerImageClass} />
+            <View className="w-8 h-8 rounded-full bg-[#0f3460]" />
+            <View className="w-8 h-8 rounded-full bg-[#0f3460] -ml-3 border border-[#1E4D5F]" />
+            <View className="w-8 h-8 rounded-full bg-[#0f3460] -ml-3 border border-[#1E4D5F]" />
           </View>
 
           <Text className="text-textPrimary font-MonMedium">
-            +3.8k{" "}
+            {viewerLabel}{" "}
             <Text className="text-secondary font-MonRegular text-sm">
               listening
             </Text>
           </Text>
         </View>
 
-        {/* ACTION AREA (WHISPER, NOT SHOUT) */}
-        {minimal ? (
-          ""
-        ) : (
+        {/* ACTION AREA */}
+        {!minimal && (
           <View className="mt-4 h-12 rounded-lg border border-white/10 flex-row items-center justify-center">
             <Text className="text-textPrimary font-MonMedium">
               Tap to join live

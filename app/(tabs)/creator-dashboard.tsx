@@ -2,6 +2,8 @@ import { View, Text, Pressable, ScrollView, Image } from "react-native";
 import { useCreatorMode } from "@/context/CreatorModeContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { images } from "@/constants/image";
+import ScheduleWidget from "@/components/ScheduleWidget";
+import PodcastCommentsCard from "@/components/Podcastcommentscard";
 
 export default function CreatorDashboard() {
   const { toggleCreatorMode } = useCreatorMode();
@@ -40,16 +42,25 @@ export default function CreatorDashboard() {
           <Image className="w-full h-full" source={images.profile} />
         </View>
       </View>
-      <View className="bg-gray-800 p-4 rounded-3xl shadow-xs mt-10 w-[90%] h-48"></View>
+      <ScheduleWidget
+        date="Jun 9"
+        dayLabel="Wednesday"
+        eventCount={4}
+        creators={[
+          { name: "Amara Nwosu", role: "Host", avatar: images.profile },
+          { name: "Kola Adeyemi", role: "Co-host", avatar: images.profile },
+        ]}
+      />
       <View className="w-[90%] h-80 mt-3 flex-row items-center justify-between">
         <View className="w-[49%] h-full bg-gray-800 rounded-3xl"></View>
         <View className="w-[49%] h-full bg-gray-800 rounded-3xl"></View>
       </View>
-      <View className="bg-gray-800 p-4 rounded-3xl shadow-xs mt-3 w-[90%] h-48"></View>
-      <View className="w-[90%] h-80 mt-3 flex-row items-center justify-between">
+      <PodcastCommentsCard mini />
+      {/* <View className="w-[90%] h-80 mt-3 flex-row items-center justify-between">
         <View className="w-[49%] h-full bg-gray-800 rounded-3xl"></View>
         <View className="w-[49%] h-full bg-gray-800 rounded-3xl"></View>
-      </View>
+      </View> */}
+      
     </ScrollView>
   );
 }

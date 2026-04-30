@@ -6,6 +6,8 @@ import DropdownWrapper from "./dropdown";
 import { useRssLink } from "./modals/RSSLink";
 import { useSortFilter } from "./modals/Sort";
 import PP from "./author/profile/PP";
+import { useCreatorMode } from "@/context/CreatorModeContext";
+import { useUI } from "@/context/UIContext";
 
 type CustomIcon = {
   icon: any; // Image source
@@ -37,14 +39,24 @@ const PageHead = ({
   const { ref } = useRssLink();
   const router = useRouter();
   const { ref: sortRef } = useSortFilter();
+  const {isCreatorMode} = useCreatorMode()
+  const {isSheetOpen} = useUI()
 
   const handleBack = async () => {
-    if (ref.current?.close && sortRef.current?.close) {
+    if (isSheetOpen) {
       await ref.current.close();
       await sortRef.current.close();
-      router.back();
+      if (isCreatorMode) {
+        router.navigate("/(tabs)/creator-dashboard");
+      } else {
+        router.navigate("/");
+      }
     } else {
-      router.back();
+      if (isCreatorMode) {
+        router.navigate("/(tabs)/creator-dashboard");
+      } else {
+        router.navigate("/");
+      }
     }
   };
 

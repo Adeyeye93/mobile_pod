@@ -6,10 +6,13 @@ interface InputProps {
   placeholder: string;
   [key: string]: any;
   secret_icon?: any;
-  icon: any;
+  icon?: any;
+  remove_icons?: boolean;
+  InputClass?: string;
+  contClass?: string;
 }
 
-const Inputs = ({ placeholder, secret_icon, icon, ...props }: InputProps) => {
+const Inputs = ({ placeholder, secret_icon, icon, remove_icons, InputClass, contClass, ...props }: InputProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
 
@@ -19,18 +22,20 @@ const Inputs = ({ placeholder, secret_icon, icon, ...props }: InputProps) => {
         isFocused
           ? "border-[#4169e1] bg-[#4169e111]"
           : "border-[#1f222b] bg-[#1f222b]"
-      }`}
+      } ${contClass}`}
     >
-      <Image
-        source={icon}
-        className="w-7 h-7"
-        tintColor={isFocused ? "#4169e1" : "#9e9e9e"}
-      ></Image>
+      {!remove_icons && (
+        <Image
+          source={icon}
+          className="w-7 h-7"
+          tintColor={isFocused ? "#4169e1" : "#9e9e9e"}
+        ></Image>
+      )}
       <TextInput
         placeholderTextColor={isFocused ? "#ffff" : "#9e9e9e"}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="flex-1 h-full px-5 text-xl text-textSecondary font-MonMedium"
+        className={`flex-1 h-full px-5 text-xl text-textSecondary font-MonMedium ${InputClass}`}
         placeholder={placeholder}
         {...props}
       />

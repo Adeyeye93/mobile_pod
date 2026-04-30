@@ -75,10 +75,18 @@ import dashboardH from "@/assets/icons/dashboardH.png";
 import analytics from "@/assets/icons/analytics.png";
 import analyticsH from "@/assets/icons/analyticsH.png";
 import logOut from "@/assets/icons/LogOut.png"
+import globe from "@/assets/icons/globe.png";
+import privat from "@/assets/icons/private.png";
+import clipboard from "@/assets/icons/clipboard.png";
+import listening from "@/assets/icons/listening.png";
 
 
 
 export const icons = {
+  listening,
+  privat,
+  clipboard,
+  globe,
   logOut,
   analytics,
   analyticsH,
