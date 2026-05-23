@@ -13,7 +13,7 @@ import { useCreatorWelcomeModal } from "@/context/ModalIntances";
 import { api } from "@/libs/api";
 
 const Profile = () => {
-  const { signOut, user } = useAuth();
+  const { signOut, user, username } = useAuth();
   const { toggleCreatorMode, setAm_a_creator } = useCreatorMode();
   const router = useRouter();
   const { open, close } = useCreatorWelcomeModal();
@@ -41,7 +41,7 @@ const Profile = () => {
   return (
     <View className="flex-1 bg-background px-4 pb-16">
       <PageHead title="Profile" has_menu premium />
-      <Header />
+      <Header username={username} Sub={0}/>
       <Pressable
         onPress={() => handleMode()}
         className="border border-[#80808025] w-full h-12 rounded-lg mt-5 flex-row items-center justify-between px-2"
@@ -69,7 +69,7 @@ const Profile = () => {
         secondText="English(US)"
       />
       <ProfileList onPress={handleLogOut} icon={icons.logOut} text="Log out" />
-      <ProfileList icon={icons.error_flash} text="Help Center" />
+      <ProfileList icon={icons.error_flash} text="Help Center"  />
     </View>
   );
 };

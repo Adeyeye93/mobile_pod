@@ -24,6 +24,7 @@ type PageHeadProps = {
   has_profile?: boolean;
   customIcons?: CustomIcon[]; // Better name and proper typing
   premium?: boolean;
+  has_priv?: boolean;
 };
 
 const PageHead = ({
@@ -35,6 +36,7 @@ const PageHead = ({
   has_profile,
   customIcons,
   premium,
+  has_priv = true,
 }: PageHeadProps) => {
   const { ref } = useRssLink();
   const router = useRouter();
@@ -64,7 +66,7 @@ const PageHead = ({
     <View className="w-full p-2 flex flex-row items-center justify-between mt-12 pb-10 gap-6">
       {/* Left Section - Back/Profile + Title */}
       <View className="flex flex-row items-center gap-6 flex-1">
-        {!has_profile && (
+        {!has_profile && has_priv &&  (
           <Pressable onPress={handleBack}>
             <Image source={icons.backPage} className="w-7 h-7" />
           </Pressable>

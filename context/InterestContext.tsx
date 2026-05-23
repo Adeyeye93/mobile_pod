@@ -30,6 +30,7 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
   const [hasInterest, setHasInterest] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isInterestHydrated, setIsInterestHydrated] = useState(false);
+  
   const { signOut } = useAuth();
 
   const handleLogout = async () => {
@@ -44,6 +45,8 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
         if (cached !== null) {
           setHasInterest(JSON.parse(cached));
         }
+        // await AsyncStorage.removeItem("userInterests");
+        // await AsyncStorage.removeItem("hasInterest")
       } catch (error) {
         console.log("Error reading cached interests:", error);
       } finally {
@@ -57,7 +60,9 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const response = await api.get("/interests");
+      console.log(response.data.interests)
       const interestsData = response.data.data || response.data.interests || [];
+      const lastUpdated  = Date.now()
       setInterests(interestsData);
 
       // Save to cache
@@ -65,6 +70,7 @@ export function InterestProvider({ children }: { children: React.ReactNode }) {
         "userInterests",
         JSON.stringify(interestsData),
       );
+      await AsyncStorage.setItem("last_updated", lastUpdated)
     } catch (error) {
       console.log("Error loading interests:", error);
     } finally {

@@ -6,12 +6,12 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import { images } from "../../constants/image";
 import { FilterPill } from "@/components/fielterpill";
 import { useState } from "react";
 import AllFeed from "@/components/page/AllFeed";
 import Live from "@/components/page/Live";
 import PP from "@/components/author/profile/PP";
+import Episodes from "@/components/page/Episodes";
 
 
 export default function Index() {
@@ -25,7 +25,7 @@ export default function Index() {
     case "live":
       return <Live />; 
     case "episodes":
-      return <View />;
+      return <Episodes />;
     case "following":
       return <View />;
     case "trending":

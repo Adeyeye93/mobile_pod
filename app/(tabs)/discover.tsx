@@ -11,46 +11,15 @@ import { Image, Pressable, Text, View } from "react-native";
 import { CustomModal } from "@/components/modals/Modal";
 import Preloader from "@/components/screen/preloader";
 import Search from "../discover/search";
+import { useInterest } from "@/context/InterestContext";
 
 const Discover = () => {
-  const [interests, setInterests] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // const [interests, setInterests] = useState([]);
+  // const [isLoading, setIsLoading] = useState(true);
   const [isMoodLoading, setIsMoodLoading] = useState(true);
   const [mood, setMood] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-
-  useEffect(() => {
-    const loadInterests = async () => {
-      try {
-        setIsLoading(true);
-
-        const cached = await AsyncStorage.getItem("userInterests");
-        if (cached) {
-          setInterests(JSON.parse(cached));
-          setIsLoading(false);
-          return;
-        }
-
-        const response = await api.get("/interests");
-        const interestsData =
-          response.data.data || response.data.interests || [];
-
-        setInterests(interestsData);
-
-        await AsyncStorage.setItem(
-          "userInterests",
-          JSON.stringify(interestsData),
-        );
-      } catch (error) {
-        console.error("Error loading interests:", error);
-        setInterests([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadInterests();
-  }, []);
+  const { interests, loading } = useInterest()
 
   useEffect(() => {
     const loadMoods = async () => {
@@ -81,7 +50,7 @@ const Discover = () => {
     loadMoods();
   }, []);
 
-  if (isMoodLoading && isLoading) {
+  if (isMoodLoading || loading) {
     return <Preloader />;
   } else {
     return (

@@ -1,8 +1,10 @@
 import { getAuth, saveAuth, clearAuth } from "@/storage/authStorage";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api } from "@/libs/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/FlashMessageContext";
+import { authEvents } from "@/libs/authEvents";
+import { useRouter } from "expo-router";
 
 
 
@@ -20,15 +22,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const { show } = useToast();
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
 
   const isAuthenticated = !!user;
 
-  // Restore session on app launch
   useEffect(() => {
     (async () => {
       const stored = await getAuth();
       if (stored) {
         setUser(stored.user);
+        setEmail(stored.user.email)
+        const formatedUsername = stored.user.email.replace(/@.*$/, "")
+        setUsername(formatedUsername)
       }
       setIsBootstrapping(false);
     })();
@@ -70,16 +77,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   
 
-  const signOut = async (args?: { message?: string }) => {
-    await clearAuth();
-    AsyncStorage.clear()
-    setUser(null);
-    show({
-      message: args?.message || "Logged out successfully!",
-      type: "info",
-      title: "Logged Out",
+  const signOut = useCallback(
+    async (args?: { message?: string }) => {
+      await clearAuth();
+      AsyncStorage.clear();
+      setUser(null);
+      router.push("/(auth)/onboarding");
+      show({
+        message: args?.message || "Logged out successfully!",
+        type: "info",
+        title: "Logged Out",
+      });
+    },
+    [clearAuth, show],
+  );
+
+  useEffect(() => {
+    authEvents.setSignOutCallback(() => {
+      signOut({ message: "Session expired. Please log in again." });
     });
-  };
+  }, [signOut]);
 
 
   return (
@@ -88,6 +105,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isAuthenticated,
         isBootstrapping,
+        username,
+        email,
         signIn,
         signUp,
         signOut,

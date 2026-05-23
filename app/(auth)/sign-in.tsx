@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useAuth } from "@/context/AuthContext";
-import PageHead from "@/components/PageHead";
+import Spacer from "@/components/spacer";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/image";
 import Inputs from "@/components/auth/Inputs";
@@ -38,7 +38,7 @@ export default function SignIn() {
       console.log(err)
       if (err.type === "auth") {
       show({
-        title: "Error",
+        title: "Invalid",
         message: err.message,
         type: "danger",
       });
@@ -52,7 +52,7 @@ export default function SignIn() {
 
   return (
     <View className="flex-1 bg-background px-4 pb-10">
-      <PageHead />
+      <Spacer value={70} />
       <View className="flex-1 flex-col items-center justify-end">
         <View className=" w-full h-4/5 flex flex-col items-center justify-between">
           <Image className="w-36 h-36 mb-5" source={images.logo} />
@@ -73,7 +73,6 @@ export default function SignIn() {
             <Inputs
               placeholder="password"
               icon={icons.passwordKey}
-              secureTextEntry
               secret_icon
               editable={!isDisabled}
               value={password}

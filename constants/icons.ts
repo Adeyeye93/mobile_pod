@@ -79,10 +79,12 @@ import globe from "@/assets/icons/globe.png";
 import privat from "@/assets/icons/private.png";
 import clipboard from "@/assets/icons/clipboard.png";
 import listening from "@/assets/icons/listening.png";
+import invites from "@/assets/icons/invites.png"
 
 
 
 export const icons = {
+  invites,
   listening,
   privat,
   clipboard,

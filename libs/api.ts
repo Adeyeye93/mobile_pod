@@ -1,13 +1,12 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth, updateAuth } from "@/storage/authStorage";
+import { authEvents } from "./authEvents";
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL;
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 let isRefreshing = false;
 let errorMessage;
-
 
 type FailedRequest = {
   resolve: (token: string) => void;
@@ -27,7 +26,6 @@ const processQueue = (error: any, token: string | null = null) => {
 
   failedQueue = [];
 };
-
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -49,7 +47,7 @@ api.interceptors.request.use(
     // console.log("USR:", data);
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 api.interceptors.response.use(
@@ -59,8 +57,6 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const url = originalRequest?.url ?? "";
     errorMessage = error.response?.data?.errors;
-
-    
 
     // 1️⃣ Validation errors (expected)
     if (status === 422) {
@@ -80,22 +76,22 @@ api.interceptors.response.use(
     if (status === 401 && isAuthRoute) {
       return Promise.reject({
         type: "auth",
-        message: errorMessage,
+        message: "Invalid Email or Password",
       });
     }
 
     // 3️⃣ Token refresh logic (ONLY for protected routes)
     if (status === 401 && !originalRequest._retry) {
-
       const data = await getAuth();
       const refreshToken = data?.refreshToken;
       // console.log("THE REFRESH TOKEN",refreshToken)
       if (!refreshToken) {
+        authEvents.signOut();
         return Promise.reject({
           type: "auth",
           message: "Session expired. Please log in again.",
           issue: true,
-          reason: "SESSION_EXPIRE"
+          reason: "SESSION_EXPIRE",
         });
       }
 
@@ -118,8 +114,7 @@ api.interceptors.response.use(
 
         const { access_token, refresh_token } = res.data;
 
-        updateAuth({accessToken: access_token, refreshToken: refresh_token})
-        
+        updateAuth({ accessToken: access_token, refreshToken: refresh_token });
 
         api.defaults.headers.Authorization = `Bearer ${access_token}`;
         processQueue(null, access_token);
@@ -128,8 +123,8 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
-
         await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
+        authEvents.signOut();
         return Promise.reject({
           type: "auth",
           message: "Session expired. Please log in again.",
@@ -146,5 +141,5 @@ api.interceptors.response.use(
       message: error.message || "Something went wrong",
       status,
     });
-  }
+  },
 );

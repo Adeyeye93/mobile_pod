@@ -12,6 +12,7 @@ import { ToggleButton } from "./ToggleBtn";
 interface ProfileListProp {
   icon?: ImageSourcePropType;
   text: string;
+  requireAction?: boolean;
   secondText?: string;
   toggle?: boolean;
   onPress?: () => void;
@@ -25,6 +26,7 @@ const ProfileList = ({
   text,
   secondText,
   toggle,
+  requireAction = false,
   onPress,
   selected,
   toggleValue,
@@ -39,15 +41,28 @@ const ProfileList = ({
         {icon && (
           <Image tintColor="#E4E7EC" className="w-7 h-7" source={icon} />
         )}
-        <Text className="text-textPrimary font-MonBold">{text}</Text>
+        <Text className="text-textPrimary font-MonBold relative">
+          {text}
+          {requireAction && (
+            <View className="absolute w-2 h-2 bg-green-600 rounded-full z-10 right-0 top-0" />
+          )}
+        </Text>
         {secondText && (
           <Text className="text-textPrimary font-MonBold">{secondText}</Text>
         )}
       </View>
       <View className="flex flex-row gap-4">
-        {selected && <Text className="text-textPrimary font-MonMedium">{selected}</Text>}
+        {selected && (
+          <Text className="text-textPrimary font-MonMedium">{selected}</Text>
+        )}
         {!toggle && <Image className="w-5 h-5" source={icons.redirect2} />}
-        {toggle && <ToggleButton size="small" value={toggleValue} onChange={onToggleChange} />}
+        {toggle && (
+          <ToggleButton
+            size="small"
+            value={toggleValue}
+            onChange={onToggleChange}
+          />
+        )}
       </View>
     </Pressable>
   );

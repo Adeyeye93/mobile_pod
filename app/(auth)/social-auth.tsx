@@ -1,4 +1,4 @@
-import PageHead from "@/components/PageHead";
+import Spacer from "@/components/spacer";
 import { images} from "@/constants/image";
 import React from "react";
 import { Image, Text, View, TouchableOpacity} from "react-native";
@@ -14,7 +14,7 @@ const SocialAuth = () => {
     };
   return (
     <View className="flex-1 bg-background px-4 pb-28">
-      <PageHead />
+      <Spacer value={1} />
       <View className="flex-1 flex-col items-center justify-end">
         <View className=" w-full h-3/5 flex flex-col items-center justify-between">
           <Image className="w-36 h-36 mb-5" source={images.logo} />

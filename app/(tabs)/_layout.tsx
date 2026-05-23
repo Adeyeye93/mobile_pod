@@ -5,11 +5,16 @@ import { useCreatorMode } from "@/context/CreatorModeContext";
 
 const TabIcon = ({ focused, icon, iconH, title }: any) => {
   return (
-    <View className="flex flex-col items-center justify-center min-w-[70px] min-h-[50px]">
-      <Image source={focused ? iconH : icon} className="w-7 h-7" />
+    <View className="flex flex-col items-center justify-center min-w-[70px] min-h-[50px] gap-1">
+      {focused && (
+        <Image source={iconH} className="w-7 h-7" tintColor="white" />
+      )}
+      {!focused && (
+        <Image source={icon} className="w-7 h-7" tintColor="white" />
+      )}
       <Text
-        className={`text-[10px] font-MonRegular ${
-          focused ? "text-primary" : "text-icon"
+        className={`text-[10px] font-MonMedium ${
+          focused ? "text-textPrimary" : "text-icon"
         }`}
       >
         {title}
@@ -34,7 +39,7 @@ export default function TabsLayout() {
             borderTopWidth: 0,
           },
           tabBarItemStyle: {
-            marginTop: 10,
+            marginTop: 15,
           },
         }}
       >
@@ -50,12 +55,6 @@ export default function TabsLayout() {
             href: null,
           }}
         />
-        {/* <Tabs.Screen
-          name="creator-analytics"
-          options={{
-            href: null,
-          }}
-        /> */}
         <Tabs.Screen
           name="creator-profile"
           options={{
@@ -72,6 +71,7 @@ export default function TabsLayout() {
                 icon={icons.home}
                 iconH={icons.homeH}
                 title="Home"
+                
               />
             ),
           }}
@@ -193,21 +193,6 @@ export default function TabsLayout() {
             ),
           }}
         />
-
-        {/* <Tabs.Screen
-          name="creator-analytics"
-          options={{
-            headerShown: false,
-            tabBarIcon: ({ focused }) => (
-              <TabIcon
-                focused={focused}
-                icon={icons.analytics}
-                iconH={icons.analyticsH}
-                title="Analytics"
-              />
-            ),
-          }}
-        /> */}
 
         <Tabs.Screen
           name="creator-profile"

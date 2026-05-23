@@ -9,11 +9,11 @@ import { useAuth } from "@/context/AuthContext";
 import SocialS from "@/components/auth/SocialS";
 import Inputs from "@/components/auth/Inputs";
 import { icons } from "@/constants/icons";
-import PageHead from "@/components/PageHead";
 import { images } from "@/constants/image";
 import { useRouter } from "expo-router";
 import { useToast } from "@/context/FlashMessageContext";
 import { useState } from "react";
+import Spacer from "@/components/spacer";
 
 export default function SignUp() {
   const { signUp } = useAuth();
@@ -37,10 +37,11 @@ export default function SignUp() {
       // router.push("/(app)/home");
     } catch (err: any) {
       if (err.type === "validation") {
-        const message = Object.values(err.errors).flat().join("\n");
+        const errors = Object.values(err.errors) as string[][];
+        const message = errors[0]?.[0] ?? "Validation error";
         show({
           title: "Error",
-          message: message,
+          message,
           type: "danger",
         });
       } else {
@@ -58,7 +59,7 @@ export default function SignUp() {
 
   return (
     <View className="flex-1 bg-background px-4 pb-10">
-      <PageHead />
+      <Spacer value={70} />
       <View className="flex-1 flex-col items-center justify-end">
         <View className=" w-full h-4/5 flex flex-col items-center justify-between">
           <Image className="w-36 h-36 mb-5" source={images.logo} />
@@ -79,7 +80,6 @@ export default function SignUp() {
             <Inputs
               placeholder="password"
               icon={icons.passwordKey}
-              secureTextEntry
               secret_icon
               editable={!isDisabled}
               value={password}
@@ -90,7 +90,6 @@ export default function SignUp() {
             <Inputs
               placeholder="Confirm password"
               icon={icons.passwordKey}
-              secureTextEntry
               secret_icon
               editable={!isDisabled}
               value={passwordConfirm}

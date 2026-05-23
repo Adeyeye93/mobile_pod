@@ -6,130 +6,61 @@ import {
   TextInput,
   Image,
 } from "react-native";
+import PageHead from "@/components/PageHead";
 import { useCreatorMode } from "@/context/CreatorModeContext";
+import PP from "@/components/author/profile/PP";
+import { icons } from "@/constants/icons";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import Divider from "@/components/divider";
+import ProfileList from "@/components/ProfileList";
+import { images } from "@/constants/image";
 
 export default function CreatorProfile() {
   const { toggleCreatorMode } = useCreatorMode();
+  const { username } = useAuth();
+
+  const handleAction = () => {};
 
   return (
-    <ScrollView className="flex-1 bg-background">
-      <View className="p-6">
-        <Text className="text-textPrimary font-MonBold text-3xl mb-6">
-          Channel Settings
-        </Text>
-
-        {/* Profile picture */}
-        <View className="items-center mb-6">
-          <View className="w-24 h-24 rounded-full bg-primary justify-center items-center mb-4">
-            <Text className="text-4xl">👤</Text>
-          </View>
-          <Pressable className="bg-gray-800 px-6 py-2 rounded-lg">
-            <Text className="text-textPrimary font-MonMedium">
-              Change Avatar
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* Channel Name */}
-        <View className="bg-gray-800 p-4 rounded-lg mb-4">
-          <Text className="text-textSecondary text-sm mb-2 font-MonBold">
-            Channel Name
-          </Text>
-          <TextInput
-            placeholder="My Creator Channel"
-            placeholderTextColor="#999"
-            className="bg-gray-700 p-3 rounded text-textPrimary"
-          />
-        </View>
-
-        {/* Bio */}
-        <View className="bg-gray-800 p-4 rounded-lg mb-4">
-          <Text className="text-textSecondary text-sm mb-2 font-MonBold">
-            Bio
-          </Text>
-          <TextInput
-            placeholder="Tell your audience about yourself..."
-            placeholderTextColor="#999"
-            className="bg-gray-700 p-3 rounded text-textPrimary h-24"
-            multiline
-          />
-        </View>
-
-        {/* Social Links */}
-        <View className="bg-gray-800 p-4 rounded-lg mb-4">
-          <Text className="text-textSecondary text-sm mb-3 font-MonBold">
-            Social Links
-          </Text>
-          <TextInput
-            placeholder="Twitter handle..."
-            placeholderTextColor="#999"
-            className="bg-gray-700 p-3 rounded text-textPrimary mb-2"
-          />
-          <TextInput
-            placeholder="Instagram profile..."
-            placeholderTextColor="#999"
-            className="bg-gray-700 p-3 rounded text-textPrimary"
-          />
-        </View>
-
-        {/* Channel Stats */}
-        <View className="bg-gradient-to-r from-primary/20 to-blue-600/20 p-4 rounded-lg mb-6">
-          <Text className="text-textPrimary font-MonBold mb-4">
-            Channel Stats
-          </Text>
-          <View className="flex-row justify-between mb-3">
-            <View>
-              <Text className="text-textSecondary text-sm">
-                Total Followers
-              </Text>
-              <Text className="text-primary font-MonBold text-lg">12,543</Text>
-            </View>
-            <View>
-              <Text className="text-textSecondary text-sm">Total Streams</Text>
-              <Text className="text-primary font-MonBold text-lg">42</Text>
-            </View>
-            <View>
-              <Text className="text-textSecondary text-sm">Total Earnings</Text>
-              <Text className="text-primary font-MonBold text-lg">$8,420</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Save button */}
-        <Pressable className="bg-primary p-4 rounded-lg mb-6 active:opacity-80">
-          <Text className="text-white font-MonBold text-center">
-            Save Changes
-          </Text>
-        </Pressable>
-
-        {/* Divider */}
-        <View className="h-px bg-gray-700 mb-6" />
-
-        {/* Switch back to user mode */}
-        <Text className="text-textSecondary text-sm mb-4 font-MonBold">
-          CREATOR MODE
-        </Text>
-        <View className="bg-gray-800 p-4 rounded-lg mb-4 flex-row items-center justify-between">
-          <View className="flex-1">
-            <Text className="text-textPrimary font-MonBold">
-              Switch to User Mode
-            </Text>
-            <Text className="text-textSecondary text-xs mt-1">
-              Go back to regular browsing
+    <ScrollView className="flex-1 bg-CreatorBG">
+      <PageHead title="Channel" has_menu />
+      <View className="flex-row items-center justify-between px-4">
+        <View className="w-fit h-full flex-row items-center justify-center gap-2">
+          <PP size={20}></PP>
+          <View className="gap-0">
+            <Text className="font-MonRegular text-[#eaeaea6a]">Welcome</Text>
+            <Text className="font-MonMedium text-textPrimary text-lg capitalize">
+              {username}
             </Text>
           </View>
         </View>
-
         <Pressable
           onPress={toggleCreatorMode}
-          className="bg-red-600/20 border border-red-600 p-4 rounded-lg active:opacity-80"
+          className="bg-[#ffffff13] rounded-full p-1"
         >
-          <Text className="text-red-500 font-MonBold text-center">
-            Exit Creator Mode
-          </Text>
+          <Image className="w-7 h-7" source={icons.redirect2} />
         </Pressable>
-
-        <View className="h-6" />
+      </View>
+      <Divider gap={40} value={250} />
+      <View className="px-4">
+        <ProfileList text="Channel Settings" icon={images.logo} />
+        <Divider gap={0} value={400} />
+        <ProfileList text="Audio settings" icon={icons.listening} />
+        <Divider gap={0} value={400} />
+        <ProfileList text="Your Invites" icon={icons.invites} />
+        <Divider gap={40} value={250} />
+      </View>
+      <View className="w-full h-40 items-center justify-center">
+        <View className="w-4/5 bg-[#60a46021] h-36 border border-[#60a46021] rounded-lg items-center justify-center p-10">
+          <Text className="text-[#60a460c7] font-MonMedium text-sm text-center ">
+            If you have any Question or Suggestion feel free to call at anytime,
+            Thank you
+          </Text>
+          <Text className="text-[#12e6e67c] font-MonMedium text-sm text-center text-pretty">
+            Learn more
+          </Text>
+        </View>
       </View>
     </ScrollView>
   );

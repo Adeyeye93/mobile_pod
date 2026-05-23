@@ -3,7 +3,12 @@ import React from "react";
 import { images } from "@/constants/image";
 import { icons } from "@/constants/icons";
 
-const Header = () => {
+interface DataProp {
+  username: string,
+  Sub: number
+}
+
+const Header = ({username, Sub}: DataProp) => {
   return (
     <View className="w-full h-fit flex-row items-center justify-start gap-4">
       <View className="w-fit h-fit relative rounded-full">
@@ -13,8 +18,8 @@ const Header = () => {
         </Pressable>
       </View>
       <View className=" h-24 items-start justify-between w-full py-4">
-        <Text className="text-lg font-MonBold text-textPrimary">Adeyeye Seyi</Text>
-        <Text className="text-textSecondary">0 Subscriber</Text>
+        <Text className="text-lg font-MonMedium text-textPrimary capitalize">{username}</Text>
+        <Text className="text-textSecondary">{Sub} Subscriber</Text>
       </View>
     </View>
   );

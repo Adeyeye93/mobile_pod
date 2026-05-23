@@ -37,6 +37,7 @@ const Inputs = ({ placeholder, secret_icon, icon, remove_icons, InputClass, cont
         onBlur={() => setIsFocused(false)}
         className={`flex-1 h-full px-5 text-xl text-textSecondary font-MonMedium ${InputClass}`}
         placeholder={placeholder}
+        secureTextEntry={secret_icon && !isRevealed}
         {...props}
       />
       {secret_icon && (
