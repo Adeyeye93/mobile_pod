@@ -3,26 +3,32 @@ import React from 'react'
 import Divider from '@/components/divider'
 
 interface Props {
-  imageUrl: any,
+  imageUrl: any;
+  title?: string;
+  creator?: string;
 }
 
-const Banner = ({ imageUrl }: Props) => {
+const Banner = ({ imageUrl, title, creator }: Props) => {
   return (
     <View className="w-full h-fit flex items-center justify-start flex-col gap-4">
       <View className="w-full h-fit flex flex-col items-center justify-center">
         <View className="w-[300px] h-[300px] rounded-[30px] flex items-center justify-center mb-2 overflow-hidden">
-          <Image source={imageUrl} className="w-full h-full"></Image>
+          <Image source={imageUrl} className="w-full h-full" />
         </View>
-        <View className="w-full h-fit flex-col items-center justify-start ">
-          <Text
-            className="text-textPrimary font-MonBold text-2xl mt-6 text-center "
-            numberOfLines={2}
-          >
-            Episode 685: Understanding the Future of Tech with Jane Doe
-          </Text>
-          <Text className="text-textSecondary font-MonMedium text-base mt-2 text-center">
-            The Jordan Harbinger Show
-          </Text>
+        <View className="w-full h-fit flex-col items-center justify-start">
+          {title ? (
+            <Text
+              className="text-textPrimary font-MonBold text-2xl mt-6 text-center"
+              numberOfLines={2}
+            >
+              {title}
+            </Text>
+          ) : null}
+          {creator ? (
+            <Text className="text-textSecondary font-MonMedium text-base mt-2 text-center">
+              {creator}
+            </Text>
+          ) : null}
         </View>
       </View>
       <Divider value={390} gap={20} />

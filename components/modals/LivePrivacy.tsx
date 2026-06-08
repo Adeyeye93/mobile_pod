@@ -16,7 +16,7 @@ const LivePrivacy = () => {
   const { ref: sheetRef } = useLivePrivacySheet();
   const router = useRouter();
   const [visibility, setVisibility] = useState<string>("");
-  const { setPrivate, private: isPrivate } = useStream();
+  const { setPrivate, isPrivate } = useStream();
 
   console.log("visibility:", visibility);
   console.log("isPrivate:", isPrivate);

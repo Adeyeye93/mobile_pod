@@ -22,9 +22,10 @@ type PageHeadProps = {
   dropdownList?: string[];
   has_menu?: boolean;
   has_profile?: boolean;
-  customIcons?: CustomIcon[]; // Better name and proper typing
+  customIcons?: CustomIcon[];
   premium?: boolean;
   has_priv?: boolean;
+  onMenuSelect?: (option: string) => void;
 };
 
 const PageHead = ({
@@ -37,6 +38,7 @@ const PageHead = ({
   customIcons,
   premium,
   has_priv = true,
+  onMenuSelect,
 }: PageHeadProps) => {
   const { ref } = useRssLink();
   const router = useRouter();
@@ -46,19 +48,14 @@ const PageHead = ({
 
   const handleBack = async () => {
     if (isSheetOpen) {
-      await ref.current.close();
-      await sortRef.current.close();
-      if (isCreatorMode) {
-        router.navigate("/(tabs)/creator-dashboard");
-      } else {
-        router.navigate("/");
-      }
+      ref.current?.close();
+      sortRef.current?.close();
+    }
+
+   if (isCreatorMode) {
+      router.navigate("/(tabs)/creator-dashboard");
     } else {
-      if (isCreatorMode) {
-        router.navigate("/(tabs)/creator-dashboard");
-      } else {
-        router.navigate("/");
-      }
+      router.navigate("/");
     }
   };
 
@@ -101,7 +98,7 @@ const PageHead = ({
           <DropdownWrapper
             options={dropdownList || ["Share"]}
             iconPaths={iconsList || [icons.share]}
-            onSelect={(value) => console.log(value)}
+            onSelect={onMenuSelect}
           >
             <Image source={icons.topMenu} className="w-7 h-7" />
           </DropdownWrapper>

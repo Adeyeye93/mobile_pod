@@ -5,9 +5,11 @@ import {
   useLiveRecorderSheet,
 } from "@/context/CreateSheetContext";
 import { useLiveNotification } from "@/context/LiveNotificationContext";
+import { useStreamChannel } from "@/hook/Usestreamchannel";
+import { getAuth } from "@/storage/authStorage";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { WaveformRecorder } from "../WaveformLine";
 import {
   Pressable,
@@ -20,7 +22,6 @@ import {
 } from "react-native";
 import Comment from "../Comment";
 import PageHead from "../PageHead";
-import { images } from "@/constants/image";
 
 // ─── Control button ───────────────────────────────────────────────────────────
 function CtrlBtn({
@@ -76,26 +77,6 @@ function CtrlBtn({
   );
 }
 
-type StreamerProps = {
-  username: string;
-  avatarUrl: any;
-  isHost?: boolean;
-};
-
-const Streamers = ({ username, avatarUrl, isHost }: StreamerProps) => {
-  return (
-    <View className="w-32 h-44 border border-[#7e7e7e19] items-center justify-center bg-[#7e7e7e28] rounded gap-4">
-      <Image
-        source={avatarUrl}
-        className="w-20 h-20 rounded-full border border-[#7e7e7e19]"
-      />
-      <Text className="text-textSecondary font-MonBold text-xs">
-        {username}
-      </Text>
-    </View>
-  );
-};
-
 // ─── LiveRecorder ─────────────────────────────────────────────────────────────
 const LiveRecorder = () => {
   const {
@@ -104,11 +85,44 @@ const LiveRecorder = () => {
     toggleMute,
     elapsed,
     currentSession,
+    isStreaming,
     stopCreatorStream,
   } = useLiveNotification();
   const { ref: liveRecorderSheet } = useLiveRecorderSheet();
   const { width } = useWindowDimensions();
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const [token, setToken] = useState("");
+
+  useEffect(() => {
+    getAuth().then((data) => setToken(data?.accessToken ?? ""));
+  }, []);
+
+  const streamId = (currentSession as any)?.streamId ?? "";
+
+  const { streamState, recentComments, connect, disconnect } = useStreamChannel({
+    streamId: streamId || "__placeholder__",
+    token,
+    onSegmentReady: () => {},
+    onStreamEnded: () => {},
+    autoConnect: false,
+  });
+
+  useEffect(() => {
+    if (isStreaming && streamId && token) {
+      connect();
+    } else {
+      disconnect();
+    }
+  }, [isStreaming, streamId, token]);
+
+  const viewerCount = streamState?.viewer_count ?? 0;
+  const formatCount = (n: number) =>
+    n >= 1_000_000
+      ? `${(n / 1_000_000).toFixed(1)}M`
+      : n >= 1_000
+        ? `${(n / 1_000).toFixed(1)}k`
+        : String(n);
 
   const handleClose = () => liveRecorderSheet.current?.close();
 
@@ -163,7 +177,7 @@ const LiveRecorder = () => {
           >
             <Image source={icons.listening} style={{ width: 18, height: 18 }} />
             <Text style={{ color: "#fff", fontSize: 13, fontWeight: "600" }}>
-              200k listeners
+              {formatCount(viewerCount)} listeners
             </Text>
           </View>
         </View>
@@ -185,50 +199,33 @@ const LiveRecorder = () => {
             style={{ flex: 1 }}
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
           >
-            <Comment
-              username="Alice"
-              content="Loving the vibes!"
-              timestamp="2m ago"
-            />
-            <Comment
-              username="Alice"
-              content="Loving the vibes!"
-              timestamp="2m ago"
-            />
-            <Comment
-              username="Bob"
-              content="When's the next episode dropping?"
-              timestamp="5m ago"
-            />
-            <Comment
-              username="Charlie"
-              content="This is fire! 🔥"
-              timestamp="10m ago"
-            />
-            <Comment
-              username="Diana"
-              content="Can you talk about your recording setup?"
-              timestamp="15m ago"
-            />
-            <Comment
-              username="Diana"
-              content="Can you talk about your recording setup?"
-              timestamp="15m ago"
-            />
-            <Comment
-              username="Diana"
-              content="Can you talk about your recording setup?"
-              timestamp="15m ago"
-            />
+            {recentComments.length === 0 ? (
+              <Text
+                style={{
+                  color: "rgba(255,255,255,0.3)",
+                  fontSize: 13,
+                  textAlign: "center",
+                  marginTop: 80,
+                }}
+              >
+                No comments yet
+              </Text>
+            ) : (
+              recentComments.map((c) => (
+                <Comment
+                  key={c.id}
+                  username={c.creator_name ?? "Listener"}
+                  content={c.text}
+                  timestamp={new Date(c.inserted_at).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                />
+              ))
+            )}
           </ScrollView>
         </View>
-        {/* <View>
-          <Streamers
-            username="HostAlice"
-            avatarUrl={images.profile3}
-            isHost={true}
-          />
-        </View> */}
+
         {/* Waveform */}
         <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
           <WaveformRecorder
@@ -241,9 +238,7 @@ const LiveRecorder = () => {
             playheadColor="#e53935"
           />
         </View>
-        <View className="flex-1">
-
-        </View>
+        <View className="flex-1" />
 
         {/* Controls */}
         <View
@@ -257,7 +252,6 @@ const LiveRecorder = () => {
             marginBottom: 17,
           }}
         >
-          {/* Mute */}
           <CtrlBtn
             icon={
               <Ionicons
@@ -271,14 +265,12 @@ const LiveRecorder = () => {
             active={isMuted}
           />
 
-          {/* Pause — wired to context when you add pause support */}
           <CtrlBtn
             icon={<Ionicons name="pause" size={20} color="#fff" />}
             label="Pause"
             onPress={() => {}}
           />
 
-          {/* End — primary destructive */}
           <CtrlBtn
             icon={<Ionicons name="stop" size={24} color="#fff" />}
             label="End"
@@ -287,7 +279,6 @@ const LiveRecorder = () => {
             primary
           />
 
-          {/* Share */}
           <CtrlBtn
             icon={
               <Ionicons name="share-social-outline" size={20} color="#fff" />
@@ -296,13 +287,10 @@ const LiveRecorder = () => {
             onPress={handleShare}
           />
 
-          {/* More */}
           <CtrlBtn
             icon={<Ionicons name="ellipsis-vertical" size={20} color="#fff" />}
             label="More"
-            onPress={() => {
-              // open options sheet — invite, viewer list, stream settings
-            }}
+            onPress={() => {}}
           />
         </View>
       </View>

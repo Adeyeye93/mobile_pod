@@ -9,23 +9,13 @@ import Animated, {
 } from "react-native-reanimated";
 
 interface PodcastPlayerProps {
-  audioSource: any;
   color: any;
 }
 
-export default function PodcastPlayer({
-  audioSource,
-  color,
-}: PodcastPlayerProps) {
+export default function PodcastPlayer({ color }: PodcastPlayerProps) {
   const { player, status, toggle, seekBy, setRate, rate } = useAudio();
 
   const barWidth = useRef(0);
-
-  useEffect(() => {
-    if (audioSource) {
-      player.replace(audioSource);
-    }
-  }, [audioSource]);
 
   const seekToPosition = (x: number) => {
     if (!barWidth.current || !status.duration) return;

@@ -4,9 +4,6 @@ import { api } from "@/libs/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/FlashMessageContext";
 import { authEvents } from "@/libs/authEvents";
-import { useRouter } from "expo-router";
-
-
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -22,7 +19,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const { show } = useToast();
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
 
@@ -33,63 +29,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const stored = await getAuth();
       if (stored) {
         setUser(stored.user);
-        setEmail(stored.user.email)
-        const formatedUsername = stored.user.email.replace(/@.*$/, "")
-        setUsername(formatedUsername)
+        setEmail(stored.user.email);
+        setUsername(stored.user.email.replace(/@.*$/, ""));
       }
       setIsBootstrapping(false);
     })();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const res = await api.post<AuthResponse>("/auth/login/", {
-      email,
-      password,
-    });
-
+    const res = await api.post<AuthResponse>("/auth/login/", { email, password });
     const payload = {
       user: res.data.user,
-      accessToken: res.data.token,
-      refreshToken: res.data.refresh,
+      accessToken: res.data.access_token,
+      refreshToken: res.data.refresh_token,
     };
-
-    console.log("signIn payload", payload);
-    await saveAuth(payload);;
+    await saveAuth(payload);
     setUser(payload.user);
+    setEmail(payload.user.email);
+    setUsername(payload.user.email.replace(/@.*$/, ""));
   };
 
-  const signUp = async (data: any): Promise<void> => {
+  const signUp = async (data: SignUpPayload): Promise<void> => {
     try {
       const res = await api.post<AuthResponse>("/auth/register", data);
-      
       const payload = {
         user: res.data.user,
-        accessToken: res.data.token,
-        refreshToken: res.data.refresh,
+        accessToken: res.data.access_token,
+        refreshToken: res.data.refresh_token,
       };
       await saveAuth(payload);
       setUser(payload.user);
-      
+      setEmail(payload.user.email);
+      setUsername(payload.user.email.replace(/@.*$/, ""));
     } catch (err: any) {
       throw err;
     }
   };
 
-  
-
   const signOut = useCallback(
     async (args?: { message?: string }) => {
       await clearAuth();
-      AsyncStorage.clear();
+      await AsyncStorage.multiRemove(["hasInterest", "userInterests", "last_updated"]);
       setUser(null);
-      router.push("/(auth)/onboarding");
       show({
         message: args?.message || "Logged out successfully!",
         type: "info",
         title: "Logged Out",
       });
     },
-    [clearAuth, show],
+    [show],
   );
 
   useEffect(() => {
@@ -97,7 +85,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut({ message: "Session expired. Please log in again." });
     });
   }, [signOut]);
-
 
   return (
     <AuthContext.Provider
@@ -116,4 +103,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   );
 }
-

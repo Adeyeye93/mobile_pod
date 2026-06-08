@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Share } from "react-native";
 import React from "react";
 import Head from "@/components/author/head";
 import { icons } from "@/constants/icons";
@@ -16,6 +16,9 @@ const Episode = () => {
         has_menu
         iconsList={[icons.share, icons.rss, icons.report]}
         dropdownList={["Share", "View RSS feed", "Report"]}
+        onMenuSelect={(opt) => {
+          if (opt === "Share") Share.share({ message: "Check out this episode on Echo!" });
+        }}
       />
       <Head imageUrl={images.pod4} title="The Jordan Steve Show" />
       <View className="w-full h-fit flex flex-col justify-start items-start gap-4 px-2">

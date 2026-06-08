@@ -3,14 +3,13 @@ import {
   Text,
   Pressable,
   ScrollView,
-  TextInput,
   Image,
+  Share,
 } from "react-native";
 import PageHead from "@/components/PageHead";
 import { useCreatorMode } from "@/context/CreatorModeContext";
 import PP from "@/components/author/profile/PP";
 import { icons } from "@/constants/icons";
-import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Divider from "@/components/divider";
 import ProfileList from "@/components/ProfileList";
@@ -20,11 +19,21 @@ export default function CreatorProfile() {
   const { toggleCreatorMode } = useCreatorMode();
   const { username } = useAuth();
 
-  const handleAction = () => {};
-
   return (
     <ScrollView className="flex-1 bg-CreatorBG">
-      <PageHead title="Channel" has_menu />
+      <PageHead
+        title="Channel"
+        has_menu
+        iconsList={[icons.share, icons.redirect2]}
+        dropdownList={["Share Channel", "Switch to Listener"]}
+        onMenuSelect={(opt) => {
+          if (opt === "Share Channel") {
+            Share.share({ message: "Check out my channel on Echo!" });
+          } else if (opt === "Switch to Listener") {
+            toggleCreatorMode();
+          }
+        }}
+      />
       <View className="flex-row items-center justify-between px-4">
         <View className="w-fit h-full flex-row items-center justify-center gap-2">
           <PP size={20}></PP>

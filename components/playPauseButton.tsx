@@ -1,15 +1,31 @@
 import { View, Text, TouchableOpacity, Image, Pressable } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { icons } from "@/constants/icons";
 import DropdownWrapper from "./dropdown";
 
-const PlayPauseButton = ({Playing, Completed}: {Playing: boolean, Completed: boolean}) => {
+const PlayPauseButton = ({
+  Playing,
+  Completed,
+  onPlay,
+}: {
+  Playing: boolean;
+  Completed: boolean;
+  onPlay?: () => void;
+}) => {
   const [isPlaying, setIsPlaying] = useState(Playing);
   const [isCompleted] = useState(Completed);
 
+  // Sync display state when the parent drives the playing flag
+  useEffect(() => {
+    setIsPlaying(Playing);
+  }, [Playing]);
+
   const handlePress = () => {
-    setIsPlaying(!isPlaying);
-    console.log("clciked paused or played");
+    if (onPlay) {
+      onPlay();
+    } else {
+      setIsPlaying((p) => !p);
+    }
   };
   
   if (!isCompleted) {

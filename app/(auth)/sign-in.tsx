@@ -35,14 +35,11 @@ export default function SignIn() {
       // Navigate to home or next screen
       // router.push("/(app)/home");
     } catch (err: any) {
-      console.log(err)
       if (err.type === "auth") {
-      show({
-        title: "Invalid",
-        message: err.message,
-        type: "danger",
-      });
-    }
+        show({ title: "Invalid credentials", message: err.message, type: "danger" });
+      } else {
+        show({ title: "Error", message: err.message || "Something went wrong", type: "danger" });
+      }
     } finally {
       setIsLoading(false);
     }

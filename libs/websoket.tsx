@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 let msgRef = 0;
 const makeRef = () => String(++msgRef);
 
-function encode(
+export function encode(
   joinRef: string | null,
   ref: string | null,
   topic: string,
@@ -13,7 +13,7 @@ function encode(
   return JSON.stringify([joinRef, ref, topic, event, payload]);
 }
 
-function decode(raw: string) {
+export function decode(raw: string) {
   try {
     const [join_ref, ref, topic, event, payload] = JSON.parse(raw);
     return { join_ref, ref, topic, event, payload };
@@ -53,6 +53,7 @@ export function usePhoenixChannel({
 
   const wsRef = useRef<WebSocket | null>(null);
   const joinRefRef = useRef<string | null>(null);
+  const joinedTopicRef = useRef<string | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const handlersRef = useRef<Map<string, Set<EventHandler>>>(new Map());
 
@@ -154,6 +155,7 @@ export function usePhoenixChannel({
           if (isOurJoin) {
             console.log("[PhoenixChannel] ✅ Channel joined:", topic);
             setIsJoined(true);
+            joinedTopicRef.current = topic;
             dispatch("phx_join", msg.payload.response);
           } else if (msg.payload?.status === "error") {
             console.error(
@@ -198,6 +200,7 @@ export function usePhoenixChannel({
       setIsJoined(false);
       wsRef.current = null;
       joinRefRef.current = null;
+      joinedTopicRef.current = null;
       stopHeartbeat();
     };
     // ✅ No token in deps — read from ref inside instead
@@ -205,10 +208,14 @@ export function usePhoenixChannel({
 
   const disconnect = useCallback(() => {
     if (wsRef.current) {
-      if (wsRef.current.readyState === WebSocket.OPEN && joinRefRef.current) {
+      if (
+        wsRef.current.readyState === WebSocket.OPEN &&
+        joinRefRef.current &&
+        joinedTopicRef.current
+      ) {
         console.log("[PhoenixChannel] Sending phx_leave before disconnect");
         wsRef.current.send(
-          encode(joinRefRef.current, makeRef(), topic, "phx_leave", {}),
+          encode(joinRefRef.current, makeRef(), joinedTopicRef.current, "phx_leave", {}),
         );
       }
       wsRef.current.close();
@@ -217,7 +224,7 @@ export function usePhoenixChannel({
     stopHeartbeat();
     setIsConnected(false);
     setIsJoined(false);
-  }, [topic, stopHeartbeat]);
+  }, [stopHeartbeat]);
 
   const push = useCallback(
     (event: string, payload: object = {}) => {

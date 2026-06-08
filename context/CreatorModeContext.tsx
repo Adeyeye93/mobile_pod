@@ -19,10 +19,8 @@ export function CreatorModeProvider({
   children: React.ReactNode;
 }) {
   const [isCreatorMode, setIsCreatorMode] = useState(false);
-  const [isHydrated, setIsHydrated] = useState(false);
   const [am_a_creator, setAm_a_creator] = useState(false);
 
-  // Load creator mode preference on app start
   useEffect(() => {
     (async () => {
       try {
@@ -32,8 +30,6 @@ export function CreatorModeProvider({
         }
       } catch (error) {
         console.log("Error reading creator mode preference:", error);
-      } finally {
-        setIsHydrated(true);
       }
     })();
   }, []);
@@ -57,10 +53,6 @@ export function CreatorModeProvider({
       console.log("Error saving creator mode preference:", error);
     }
   };
-
-  if (!isHydrated) {
-    return null; // Wait for hydration
-  }
 
   return (
     <CreatorModeContext.Provider

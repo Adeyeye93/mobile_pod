@@ -1,5 +1,5 @@
 import { View, Text, Pressable, Image } from "react-native";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/image";
 import { useImageColors } from "@/hook/useImageColors";
@@ -7,52 +7,25 @@ import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { useAudio } from "@/context/AudioPlayerContext";
 import { usePlayer } from "./player";
 import { Ionicons } from "@expo/vector-icons";
-import { useLiveStream } from "@/context/stream/StreamContext";
+import { useLiveNotification } from "@/context/LiveNotificationContext";
 import { useCreatorMode } from "@/context/CreatorModeContext";
-
-// ─── Elapsed timer hook ───────────────────────────────────────────────────────
-function useElapsedTime(startedAt: string | null) {
-  const [elapsed, setElapsed] = useState("00:00:00");
-
-  useEffect(() => {
-    if (!startedAt) return;
-    const origin = new Date(startedAt).getTime();
-
-    const tick = () => {
-      const diff = Math.floor((Date.now() - origin) / 1000);
-      const h = Math.floor(diff / 3600);
-      const m = Math.floor((diff % 3600) / 60);
-      const s = diff % 60;
-      const pad = (n: number) => String(n).padStart(2, "0");
-      setElapsed(`${pad(h)}:${pad(m)}:${pad(s)}`);
-    };
-
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [startedAt]);
-
-  return elapsed;
-}
 
 // ─── Creator Live Mini Player ─────────────────────────────────────────────────
 function CreatorLiveMiniPlayer({
   title,
-  actualStartTime,
+  elapsed,
   positionStyles,
   onPress,
   onInvite,
   onMenu,
 }: {
   title: string;
-  actualStartTime: string | null;
+  elapsed: string;
   positionStyles: object;
   onPress: () => void;
   onInvite: () => void;
   onMenu: () => void;
 }) {
-  const elapsed = useElapsedTime(actualStartTime ?? new Date().toISOString());
-
   return (
     <Pressable
       onPress={onPress}
@@ -63,7 +36,6 @@ function CreatorLiveMiniPlayer({
         ...positionStyles,
       }}
     >
-      {/* Animated live top bar */}
       <View className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary opacity-80" />
 
       {/* LIVE badge */}
@@ -86,7 +58,6 @@ function CreatorLiveMiniPlayer({
 
       {/* Creator actions */}
       <View className="flex-row items-center gap-3">
-        {/* Invite */}
         <Pressable
           onPress={(e) => {
             e.stopPropagation();
@@ -102,7 +73,6 @@ function CreatorLiveMiniPlayer({
           </Text>
         </Pressable>
 
-        {/* Mic toggle */}
         <Pressable
           onPress={(e) => e.stopPropagation()}
           className="items-center gap-0.5"
@@ -113,7 +83,6 @@ function CreatorLiveMiniPlayer({
           <Text className="text-white/35 font-MonRegular text-[8px]">Mic</Text>
         </Pressable>
 
-        {/* More menu */}
         <Pressable
           onPress={(e) => {
             e.stopPropagation();
@@ -133,45 +102,42 @@ function CreatorLiveMiniPlayer({
 // ─── Main MiniPlayer ──────────────────────────────────────────────────────────
 export default function MiniPlayer() {
   const { config } = useMiniPlayer();
-  const bannerImage = images.pod;
-  const { status, toggle, isActive } = useAudio();
+  const { status, toggle, isActive, currentTrack } = useAudio();
   const [isSaved, setIsSaved] = useState(false);
+  const bannerImage = currentTrack?.thumbnail
+    ? { uri: currentTrack.thumbnail }
+    : images.thumbnail;
   const colors = useImageColors(bannerImage);
   const { ref } = usePlayer();
 
-  // Pull from your StreamContext — adjust field names to match your context shape
-  const { title, activeStream } = useLiveStream();
+  const { mode, currentSession, elapsed } = useLiveNotification();
   const { isCreatorMode } = useCreatorMode();
-  const isCreatorLive = isCreatorMode && activeStream?.status === "live";
+  const isCreatorLive = mode === "creator_live";
 
   const progressPercent =
     status.duration > 0 ? (status.currentTime / status.duration) * 100 : 0;
 
-  if (!config.isVisible || !isActive) return null;
+  const { isExpanded: isPlayerExpanded } = usePlayer();
+
+  if (!config.isVisible || (!isActive && !isCreatorLive) || isPlayerExpanded) return null;
 
   const positionStyles =
     config.position === "bottom"
       ? { bottom: config.offset ?? 96 }
       : { top: config.offset ?? 0 };
 
-  // ── Creator live mode ──────────────────────────────────────────────────────
   if (isCreatorLive) {
     return (
       <CreatorLiveMiniPlayer
-        title={activeStream?.title ?? "Live stream"}
-        actualStartTime={activeStream?.actual_start_time}
+        title={(currentSession as any)?.title ?? "Live stream"}
+        elapsed={elapsed}
         positionStyles={positionStyles}
         onPress={() => ref.current?.expand()}
-        onInvite={() => {
-          // open invite sheet / share modal
-        }}
-        onMenu={() => {
-          // open bottom sheet with more creator options
-        }}
+        onInvite={() => {}}
+        onMenu={() => {}}
       />
     );
   }
-
 
   if (isActive && !isCreatorMode) {
     return (
@@ -195,10 +161,10 @@ export default function MiniPlayer() {
               numberOfLines={1}
               className="text-textPrimary font-MonBold text-sm"
             >
-              685: Steve Rambam | The Real Life...
+              {currentTrack?.title ?? ""}
             </Text>
-            <Text className="text-textSecondary font-MonMedium text-xs">
-              Family Bad | Feedback Friday
+            <Text className="text-textSecondary font-MonMedium text-xs" numberOfLines={1}>
+              {currentTrack?.creatorName ?? ""}
             </Text>
           </View>
         </View>
@@ -224,5 +190,4 @@ export default function MiniPlayer() {
       </Pressable>
     );
   }
-  
 }

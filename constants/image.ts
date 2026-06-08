@@ -18,13 +18,13 @@ import slide1 from "@/assets/images/onboard.png"
 import slide2 from "@/assets/images/onboard1.png"
 import slide3 from "@/assets/images/onboard2.png"
 import Live from "@/assets/images/Live.png"
-
-
+import thumbnail from "@/assets/images/thumbnail.png"
 
 
 
 export const images = {
   Live,
+  thumbnail,
   logo,
   banner,
   profile,

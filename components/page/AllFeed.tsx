@@ -2,26 +2,39 @@ import {
   View,
   Text,
   ScrollView,
-  ImageBackground,
-  Image,
-  Dimensions,
+  RefreshControl,
 } from "react-native";
-import React from 'react'
-import PodList from "@/components/PodList";
-import SecondHeader from "@/components/SecondHeader";
-import SectionHeader from "@/components/SectionHeader";
-import Livecard from "@/components/livecard";
-import Subscription from "@/components/subscription";
-import { images } from '@/constants/image';
-import { useLiveStreams } from "@/hook/useLiveStreams";
+import React, { useCallback, useState } from "react";
+import { useFeed } from "@/hook/useFeed";
+import FeedSection from "@/components/FeedSection";
+import ListeningNow from "@/components/ListeningNow";
 
-
-let SectionTopLevelClass = "flex-1 h-fit mt-8";
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
+// Skeleton for a single section while loading
+function SectionSkeleton({ wide }: { wide?: boolean }) {
+  return (
+    <View className="flex-1 h-fit mt-8">
+      <View className="flex-row justify-between items-center">
+        <View className="h-5 w-36 rounded-full bg-white/5" />
+        <View className="h-4 w-12 rounded-full bg-white/5" />
+      </View>
+      <View className="flex-row gap-4 mt-5">
+        {[0, 1, 2].map((i) => (
+          <View key={i} className={`${wide ? "w-80 h-40" : "w-32 h-32"} rounded-3xl bg-white/5`} />
+        ))}
+      </View>
+    </View>
+  );
+}
 
 const AllFeed = () => {
-  const { streams, error, loading } = useLiveStreams();
+  const { sections, loading, error, refresh } = useFeed();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
+  }, [refresh]);
 
   return (
     <ScrollView
@@ -29,80 +42,36 @@ const AllFeed = () => {
       showsHorizontalScrollIndicator={false}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 10, minHeight: "100%" }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+      }
     >
-      {/* Main Content Goes Here */}
-      <ImageBackground
-        source={images.banner}
-        className="w-full h-48 rounded-[30px] mt-3 overflow-hidden pl-5 flex-row justify-start items-start"
-        resizeMode="cover"
-      >
-        <Image
-          source={images.banner1}
-          className="absolute top-0 right-0 h-full w-[18rem]"
-        />
-        <View className="flex w-2/3 mt-10">
-          <Text className="text-white font-MonBold text-xl">
-            Tune In. Connect. Listen
-          </Text>
-          <Text className="text-white font-MonRegular text-sm mt-5 w-full">
-            Stream live audio from your favorite creators and join the
-            conversation today!
+      <ListeningNow />
+
+      {/* Loading skeletons */}
+      {loading && (
+        <>
+          <SectionSkeleton />
+          <SectionSkeleton wide />
+          <SectionSkeleton />
+        </>
+      )}
+
+      {/* Error state */}
+      {!loading && error && (
+        <View className="mt-8 items-center">
+          <Text className="text-textSecondary font-MonRegular text-sm">
+            Could not load feed. Pull down to retry.
           </Text>
         </View>
-      </ImageBackground>
-      <View className={SectionTopLevelClass}>
-        <SectionHeader
-          title="Subscriptions"
-          action="See All"
-          actionRoute="/home/subscriptions"
-        />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mt-5"
-        >
-          <Subscription />
-        </ScrollView>
-      </View>
-      <View className={SectionTopLevelClass}>
-        <SectionHeader
-          title="New Updates"
-          action="See All"
-          actionRoute="/home/New Updates"
-        />
-        <PodList Playing={false} Completed={false} />
-      </View>
-      <View className={SectionTopLevelClass}>
-        <SecondHeader topic="Becuase you listened to" channel="Ted Talk" />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mt-5"
-        >
-          <Subscription />
-        </ScrollView>
-      </View>
+      )}
 
-      <View className={SectionTopLevelClass}>
-        <ScrollView
-          horizontal
-          snapToInterval={SCREEN_WIDTH * 0.9 + 16}
-          decelerationRate="fast"
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8 }}
-        >
-          {error && <View />}
-          {loading && <View />}
-
-          {streams.map((stream) => (
-            <View key={stream.id} style={{ width: SCREEN_WIDTH * 0.9 }}>
-              <Livecard stream={stream} /> 
-            </View>
-          ))}
-        </ScrollView>
-      </View>
+      {/* Dynamic sections — backend decides order, titles, and content */}
+      {!loading && sections.map((section) => (
+        <FeedSection key={section.id} section={section} />
+      ))}
     </ScrollView>
   );
-}
+};
 
-export default AllFeed
+export default AllFeed;

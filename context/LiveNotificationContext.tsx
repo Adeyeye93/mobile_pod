@@ -75,25 +75,39 @@ export function LiveNotificationProvider({
   const listenerTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const listenerSecondsRef = useRef(0);
 
-  // ── Native event subscriptions ─────────────────────────────────────────────
+  // Keep mode in a ref so event handlers always read the latest value
+  // without causing subscriptions to be torn down and re-registered
+  const modeRef = useRef<Mode>("idle");
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
+  // Throttle waveform updates to one per animation frame — native audio
+  // can emit hundreds of frames per second which would flood React's scheduler
+  const waveformPendingRef = useRef<number[]>([]);
+  const waveformRafRef = useRef<number>(0);
+
+  // ── Native event subscriptions — registered once ───────────────────────────
   useEffect(() => {
     const subs = [
-      // Elapsed from native (creator mode — driven by AudioCaptureModule)
       emitter.addListener("onElapsed", (value: string) => {
-        if (mode === "creator_live") setElapsed(value);
+        if (modeRef.current === "creator_live") setElapsed(value);
       }),
 
-      // Waveform points from native
       emitter.addListener("onWaveform", (points: number[]) => {
-        setWaveform(points);
+        waveformPendingRef.current = points;
+        if (!waveformRafRef.current) {
+          waveformRafRef.current = requestAnimationFrame(() => {
+            setWaveform(waveformPendingRef.current);
+            waveformRafRef.current = 0;
+          });
+        }
       }),
 
-      // Mute toggled from notification action button
       emitter.addListener("onMuteChanged", (value: string) => {
         setIsMuted(value === "muted");
       }),
 
-      // Stream ended from notification End button
       emitter.addListener("onStatus", (value: string) => {
         if (value === "Stream ended from notification") {
           setIsStreaming(false);
@@ -105,8 +119,12 @@ export function LiveNotificationProvider({
       }),
     ];
 
-    return () => subs.forEach((s) => s.remove());
-  }, [mode]);
+    return () => {
+      cancelAnimationFrame(waveformRafRef.current);
+      waveformRafRef.current = 0;
+      subs.forEach((s) => s.remove());
+    };
+  }, []);
 
   // ── Creator: start stream ──────────────────────────────────────────────────
   const startCreatorStream = useCallback(async (session: CreatorSession) => {

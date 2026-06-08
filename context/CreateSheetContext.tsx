@@ -99,6 +99,12 @@ export const {
   SheetProvider: SearchSheetProvider,
 } = createSheetContext();
 
+export const {
+  SheetContext: LogoutSheetContext,
+  useSheetContext: useLogoutSheet,
+  SheetProvider: LogoutSheetProvider,
+} = createSheetContext();
+
 export function Sheet({
   children,
   context,

@@ -6,8 +6,8 @@
  interface AuthResponse {
   message: string;
   user: User;
-  token: string;    // access token
-  refresh: string;  // refresh token
+  access_token: string;
+  refresh_token: string;
 }
 
  interface StoredAuth {
@@ -16,14 +16,20 @@
   user: User;
 }
 
+interface SignUpPayload {
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
 interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
   isBootstrapping: boolean;
-  email: string,
-  username: string,
+  email: string;
+  username: string;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (payload: any) => Promise<void>;
+  signUp: (payload: SignUpPayload) => Promise<void>;
   signOut: (args?: { message?: string }) => Promise<void>;
 }
 
@@ -80,14 +86,6 @@ interface SheetProps {
   showCloseButton?: boolean;
 }
 
-interface NavigationProps {
-  isBootstrapping: boolean;
-  isAuthenticated: boolean;
-  isInterestHydrated: boolean;
-  hasInterest: boolean;
-  fontsLoaded: boolean;
-  OnCreator: boolean;
-}
 
 type CustomType =
   | "Listen Later"

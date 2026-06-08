@@ -24,7 +24,7 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
 
-  const handleSignIn = async () => {
+  const handleSignUp = async () => {
     setIsLoading(true);
     try {
       await signUp({
@@ -39,16 +39,11 @@ export default function SignUp() {
       if (err.type === "validation") {
         const errors = Object.values(err.errors) as string[][];
         const message = errors[0]?.[0] ?? "Validation error";
-        show({
-          title: "Error",
-          message,
-          type: "danger",
-        });
+        show({ title: "Error", message, type: "danger" });
+      } else if (err.type === "auth") {
+        show({ title: "Error", message: err.message, type: "danger" });
       } else {
-        show({
-          message: err.message || "Something went wrong",
-          type: "danger",
-        });
+        show({ title: "Error", message: err.message || "Something went wrong", type: "danger" });
       }
     } finally {
       setIsLoading(false);
@@ -98,7 +93,7 @@ export default function SignUp() {
               style={{ opacity: isDisabled ? 0.6 : 1 }}
             />
             <TouchableOpacity
-              onPress={handleSignIn}
+              onPress={handleSignUp}
               disabled={isDisabled}
               className={`w-full h-16 flex items-center justify-center rounded-full ${
                 isDisabled ? "bg-gray-400" : "bg-primary"

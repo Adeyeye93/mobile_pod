@@ -8,7 +8,7 @@ const PodTitle = ({ title }: { title: string }) => {
   return (
     <Pressable onPress={() => router.push(`/home/author/podcast/${title}`)}>
       <Text
-        className="text-textPrimary font-MonBold text-xl"
+        className="text-textPrimary font-MonBold text-xl capitalize"
         numberOfLines={2}
         ellipsizeMode="tail"
       >

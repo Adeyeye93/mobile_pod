@@ -1,422 +1,366 @@
+import Comment from "@/components/Comment";
+import { images } from "@/constants/image";
+import { icons } from "@/constants/icons";
 import { useHLSPlayer } from "@/hook/Usehlsplayer";
 import { useStreamChannel } from "@/hook/Usestreamchannel";
 import { getAuth } from "@/storage/authStorage";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
+  Dimensions,
   Image,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
+  Pressable,
+  ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import PageHead from "@/components/PageHead";
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
+// ─── Constants ────────────────────────────────────────────────────────────────
+const { width: SCREEN_W } = Dimensions.get("window");
+const ARTWORK_H = Math.round(SCREEN_W * 0.72); // ~72vw — squarish artwork
+const BG = "#181a20";
+const QUALITY_LABELS = { low: "128k", medium: "192k", high: "320k" } as const;
 
-const COLORS = {
-  bg: "#1a1a2e",
-  card: "#16213e",
-  surface: "#0f3460",
-  accent: "#e94560",
-  text: "#ffffff",
-  muted: "#8892a4",
-  border: "#1e2d4a",
-};
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
+// ─── Route params ─────────────────────────────────────────────────────────────
 interface RouteParams {
   streamId: string;
   title: string;
   creatorName: string;
   creatorAvatar?: string;
-  masterUrl: string; // Full URL to master.m3u8
+  thumbnailUrl?: string;
+  masterUrl: string;
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
+// ─── Pulsing dots — simple live audio indicator ───────────────────────────────
+function LiveDots({ active }: { active: boolean }) {
+  return (
+    <View className="flex-row items-end gap-[3px] h-4">
+      {[1, 2, 3, 4].map((i) => (
+        <View
+          key={i}
+          style={{ width: 3, height: active ? 4 + i * 3 : 4, borderRadius: 2 }}
+          className="bg-primary"
+        />
+      ))}
+    </View>
+  );
+}
 
+// ─── Screen ───────────────────────────────────────────────────────────────────
 export default function ListenerPlayerScreen() {
   const router = useRouter();
   const params = useLocalSearchParams() as unknown as RouteParams;
-  const [token, setToken] = useState("");
 
+  const [token, setToken] = useState("");
   const [quality, setQuality] = useState<"low" | "medium" | "high">("medium");
   const [commentText, setCommentText] = useState("");
+  const commentsRef = useRef<ScrollView>(null);
+
+  // Load token once — channel connects manually when ready
   useEffect(() => {
-    (async () => {
-      const stored = await getAuth();
-      const token = stored?.accessToken ?? "";
-      setToken(token);
-    })();
+    getAuth().then((s) => setToken(s?.accessToken ?? ""));
   }, []);
-  // HLS player — handles playlist polling and segment playback
+
+  // ── HLS player ─────────────────────────────────────────────────────────────
   const {
     isPlaying,
     isBuffering,
     isEnded,
-    currentSegment,
     error,
     pause,
     resume,
     onSegmentReady,
     onStreamEnded,
-  } = useHLSPlayer({
-    masterUrl: params.masterUrl,
-    quality,
-    autoPlay: true,
-  });
+  } = useHLSPlayer({ masterUrl: params.masterUrl, quality, autoPlay: true });
 
-  // Phoenix Channel — handles real-time events
-  const { isConnected, streamState, recentComments, sendComment } =
+  // ── Phoenix channel ─────────────────────────────────────────────────────────
+  const { isConnected, streamState, recentComments, sendComment, connect } =
     useStreamChannel({
       streamId: params.streamId,
-      token: token!,
-      onSegmentReady: (payload) => onSegmentReady(payload.urls),
+      token,
+      onSegmentReady: (p) => onSegmentReady(p.urls),
       onStreamEnded,
+      autoConnect: false,
     });
 
-  const handleSendComment = useCallback(() => {
+  // Connect as soon as the auth token is available
+  useEffect(() => {
+    if (token) connect();
+  }, [token, connect]);
+
+  // Scroll comments to the bottom on new messages
+  useEffect(() => {
+    if (recentComments.length > 0)
+      commentsRef.current?.scrollToEnd({ animated: true });
+  }, [recentComments.length]);
+
+  const handleSend = useCallback(() => {
     const text = commentText.trim();
     if (!text) return;
     sendComment(text);
     setCommentText("");
   }, [commentText, sendComment]);
 
-  // ---------------------------------------------------------------------------
-  // Render helpers
-  // ---------------------------------------------------------------------------
+  const formatViewers = (n: number) =>
+    n >= 1_000_000
+      ? `${(n / 1_000_000).toFixed(1)}M`
+      : n >= 1_000
+        ? `${(n / 1_000).toFixed(1)}k`
+        : String(n);
 
-  const renderComment = ({ item }: { item: any }) => (
-    <View style={styles.comment}>
-      {item.creator_avatar ? (
-        <Image
-          source={{ uri: item.creator_avatar }}
-          style={styles.commentAvatar}
-        />
-      ) : (
-        <View style={styles.commentAvatarPlaceholder}>
-          <Text style={styles.commentAvatarInitial}>
-            {(item.creator_name ?? "?")[0].toUpperCase()}
-          </Text>
-        </View>
-      )}
-      <View style={styles.commentBody}>
-        <Text style={styles.commentName}>
-          {item.creator_name ?? "Listener"}
-        </Text>
-        <Text style={styles.commentText}>{item.text}</Text>
-      </View>
-    </View>
-  );
+  const thumbnailSource = params.thumbnailUrl
+    ? { uri: params.thumbnailUrl }
+    : images.pod;
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
-
+  // ─── Render ─────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={90}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backBtn}
+
+        {/* ══ ARTWORK HERO ════════════════════════════════════════════════ */}
+        <View style={{ height: ARTWORK_H }}>
+          <ImageBackground
+            source={thumbnailSource}
+            style={{ flex: 1 }}
+            resizeMode="cover"
           >
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
+            {/* Dim overlay so controls are readable */}
+            <View className="absolute inset-0 bg-black/30" />
 
-          <View style={styles.headerInfo}>
-            <Text style={styles.headerTitle} numberOfLines={1}>
-              {params.title}
-            </Text>
-            <Text style={styles.headerMeta}>
-              {params.creatorName}
-              {streamState?.viewer_count != null
-                ? `  ·  ${streamState.viewer_count} listening`
-                : ""}
-            </Text>
-          </View>
+            {/* Top bar — back + live badge + viewers */}
+            <View className="flex-row items-center justify-between px-4 pt-2">
+              <Pressable
+                onPress={() => router.back()}
+                className="w-9 h-9 rounded-full bg-black/40 items-center justify-center"
+              >
+                <Ionicons name="chevron-down" size={20} color="#fff" />
+              </Pressable>
 
-          {/* Connection indicator */}
-          <View
-            style={[
-              styles.dot,
-              { backgroundColor: isConnected ? "#4caf50" : COLORS.muted },
-            ]}
-          />
+              <View className="flex-row items-center gap-2">
+                {/* LIVE badge */}
+                {!isEnded && (
+                  <View className="flex-row items-center gap-1 bg-primary rounded-md px-2 py-0.5">
+                    <View className="w-1.5 h-1.5 rounded-full bg-white" />
+                    <Text className="text-white font-MonBold text-[10px] tracking-widest">
+                      LIVE
+                    </Text>
+                  </View>
+                )}
+
+                {/* Viewer count */}
+                {streamState?.viewer_count != null && (
+                  <View className="flex-row items-center gap-1 bg-black/40 rounded-full px-3 py-1">
+                    <Ionicons name="headset-outline" size={12} color="#fff" />
+                    <Text className="text-white font-MonMedium text-xs">
+                      {formatViewers(streamState.viewer_count)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Bottom gradient — fades artwork into background */}
+            <LinearGradient
+              colors={["transparent", `${BG}ee`, BG]}
+              locations={[0.3, 0.75, 1]}
+              className="absolute bottom-0 left-0 right-0 h-40"
+            />
+          </ImageBackground>
         </View>
 
-        {/* Player card */}
-        <View style={styles.playerCard}>
-          {/* Creator avatar / thumbnail */}
-          <View style={styles.avatarWrap}>
+        {/* ══ STREAM INFO + CONTROLS ══════════════════════════════════════ */}
+        <View className="px-5 -mt-16 pb-2">
+          {/* Creator avatar + name */}
+          <View className="flex-row items-center gap-3 mb-3">
             {params.creatorAvatar ? (
               <Image
                 source={{ uri: params.creatorAvatar }}
-                style={styles.creatorAvatar}
+                className="w-9 h-9 rounded-full"
               />
             ) : (
-              <View style={styles.creatorAvatarPlaceholder}>
-                <Text style={styles.creatorAvatarInitial}>
+              <View className="w-9 h-9 rounded-full bg-primary/30 items-center justify-center">
+                <Text className="text-primary font-MonBold text-sm">
                   {(params.creatorName ?? "?")[0].toUpperCase()}
                 </Text>
               </View>
             )}
-            {isBuffering && (
-              <View style={styles.bufferingOverlay}>
-                <ActivityIndicator color={COLORS.accent} size="large" />
-              </View>
-            )}
+            <View className="flex-1">
+              <Text
+                className="text-textPrimary font-MonBold text-lg leading-tight"
+                numberOfLines={2}
+              >
+                {params.title}
+              </Text>
+              <Text className="text-textSecondary font-MonMedium text-sm">
+                {params.creatorName}
+              </Text>
+            </View>
           </View>
 
-          {/* Stream ended banner */}
-          {isEnded && (
-            <View style={styles.endedBanner}>
-              <Text style={styles.endedText}>Stream ended</Text>
-            </View>
-          )}
+          {/* Connection status + waveform dots */}
+          <View className="flex-row items-center gap-3 mb-4">
+            <LiveDots active={isPlaying} />
+            <Text className="text-textSecondary font-MonRegular text-xs">
+              {isEnded
+                ? "Stream ended"
+                : isBuffering
+                  ? "Buffering…"
+                  : isConnected
+                    ? "Live now"
+                    : "Connecting…"}
+            </Text>
+          </View>
 
           {/* Error */}
-          {error && <Text style={styles.errorText}>{error}</Text>}
-
-          {/* Segment counter — useful for debugging, can remove in prod */}
-          {currentSegment > 0 && (
-            <Text style={styles.segmentCounter}>Segment {currentSegment}</Text>
+          {error && (
+            <Text className="text-red-400 font-MonRegular text-xs mb-3">
+              {error}
+            </Text>
           )}
 
-          {/* Play / Pause */}
-          <TouchableOpacity
-            style={styles.playBtn}
-            onPress={isPlaying ? pause : resume}
-            disabled={isBuffering || isEnded}
-          >
-            <Text style={styles.playBtnIcon}>{isPlaying ? "⏸" : "▶"}</Text>
-          </TouchableOpacity>
-
-          {/* Quality selector */}
-          <View style={styles.qualityRow}>
-            {(["low", "medium", "high"] as const).map((q) => (
-              <TouchableOpacity
-                key={q}
-                style={[
-                  styles.qualityBtn,
-                  quality === q && styles.qualityBtnActive,
-                ]}
-                onPress={() => setQuality(q)}
-              >
-                <Text
-                  style={[
-                    styles.qualityLabel,
-                    quality === q && styles.qualityLabelActive,
-                  ]}
+          {/* Controls row — quality pills + play button */}
+          <View className="flex-row items-center justify-between">
+            {/* Quality pills */}
+            <View className="flex-row gap-2">
+              {(["low", "medium", "high"] as const).map((q) => (
+                <Pressable
+                  key={q}
+                  onPress={() => setQuality(q)}
+                  className={`px-3 py-1 rounded-full border ${
+                    quality === q
+                      ? "bg-primary border-primary"
+                      : "border-white/15 bg-white/5"
+                  }`}
                 >
-                  {q === "low" ? "128k" : q === "medium" ? "192k" : "320k"}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    className={`font-MonMedium text-[11px] ${
+                      quality === q ? "text-white" : "text-textSecondary"
+                    }`}
+                  >
+                    {QUALITY_LABELS[q]}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            {/* Play / Pause */}
+            <Pressable
+              onPress={isPlaying ? pause : resume}
+              disabled={isBuffering || isEnded}
+              className={`w-14 h-14 rounded-full items-center justify-center ${
+                isBuffering || isEnded ? "bg-white/10" : "bg-primary"
+              }`}
+              style={{
+                shadowColor: "#4169e1",
+                shadowOpacity: isPlaying ? 0.6 : 0,
+                shadowRadius: 14,
+                shadowOffset: { width: 0, height: 4 },
+                elevation: isPlaying ? 8 : 0,
+              }}
+            >
+              {isBuffering && !isEnded ? (
+                <Ionicons name="radio-outline" size={22} color="#fff" />
+              ) : (
+                <Image
+                  source={isPlaying ? icons.pause : icons.play}
+                  className="w-6 h-6"
+                  tintColor="#ffffff"
+                />
+              )}
+            </Pressable>
           </View>
         </View>
 
-        {/* Comments */}
-        <View style={styles.commentsSection}>
-          <Text style={styles.commentsHeading}>Comments</Text>
+        {/* ══ COMMENTS ════════════════════════════════════════════════════ */}
+        <View
+          className="flex-1 border-t border-white/8 mx-4 mt-2"
+        >
+          <Text className="text-textPrimary font-MonBold text-sm pt-3 pb-2">
+            Live comments
+          </Text>
 
-          <FlatList
-            data={recentComments}
-            keyExtractor={(item) => item.id}
-            renderItem={renderComment}
-            style={styles.commentsList}
-            contentContainerStyle={styles.commentsContent}
-            inverted={false}
+          <ScrollView
+            ref={commentsRef}
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={() =>
+              commentsRef.current?.scrollToEnd({ animated: true })
+            }
+            contentContainerStyle={{ paddingBottom: 8 }}
+          >
+            {recentComments.length === 0 ? (
+              <View className="items-center py-8 gap-2">
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={28}
+                  color="rgba(255,255,255,0.2)"
+                />
+                <Text className="text-white/25 font-MonRegular text-sm">
+                  No comments yet. Be first!
+                </Text>
+              </View>
+            ) : (
+              recentComments.map((c) => (
+                <Comment
+                  key={c.id}
+                  username={c.creator_name ?? "Listener"}
+                  content={c.text}
+                  timestamp={new Date(c.inserted_at).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                />
+              ))
+            )}
+          </ScrollView>
+        </View>
+
+        {/* ══ COMMENT INPUT ════════════════════════════════════════════════ */}
+        <View className="flex-row items-center gap-3 px-4 pt-2 pb-3 border-t border-white/8">
+          <TextInput
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(255,255,255,0.07)",
+              color: "#E4E7EC",
+              borderRadius: 22,
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              fontSize: 14,
+              fontFamily: "regular",
+            }}
+            placeholder="Say something…"
+            placeholderTextColor="rgba(255,255,255,0.25)"
+            value={commentText}
+            onChangeText={setCommentText}
+            onSubmitEditing={handleSend}
+            returnKeyType="send"
+            submitBehavior="submit"
           />
-
-          {/* Comment input */}
-          <View style={styles.commentInputRow}>
-            <TextInput
-              style={styles.commentInput}
-              placeholder="Say something..."
-              placeholderTextColor={COLORS.muted}
-              value={commentText}
-              onChangeText={setCommentText}
-              onSubmitEditing={handleSendComment}
-              returnKeyType="send"
+          <Pressable
+            onPress={handleSend}
+            disabled={!commentText.trim()}
+            className={`w-10 h-10 rounded-full items-center justify-center ${
+              commentText.trim() ? "bg-primary" : "bg-white/8"
+            }`}
+          >
+            <Ionicons
+              name="send"
+              size={15}
+              color={commentText.trim() ? "#fff" : "rgba(255,255,255,0.25)"}
             />
-            <TouchableOpacity
-              style={styles.sendBtn}
-              onPress={handleSendComment}
-              disabled={!commentText.trim()}
-            >
-              <Text style={styles.sendBtnText}>Send</Text>
-            </TouchableOpacity>
-          </View>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
-
-const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: COLORS.bg },
-
-  // Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  backBtn: { padding: 4, marginRight: 12 },
-  backIcon: { color: COLORS.text, fontSize: 20 },
-  headerInfo: { flex: 1 },
-  headerTitle: { color: COLORS.text, fontSize: 16, fontWeight: "600" },
-  headerMeta: { color: COLORS.muted, fontSize: 12, marginTop: 2 },
-  dot: { width: 8, height: 8, borderRadius: 4, marginLeft: 8 },
-
-  // Player card
-  playerCard: {
-    alignItems: "center",
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.card,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 16,
-  },
-  avatarWrap: { position: "relative", marginBottom: 16 },
-  creatorAvatar: { width: 100, height: 100, borderRadius: 50 },
-  creatorAvatarPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: COLORS.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  creatorAvatarInitial: { color: COLORS.text, fontSize: 36, fontWeight: "700" },
-  bufferingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 50,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  endedBanner: {
-    backgroundColor: COLORS.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  endedText: { color: COLORS.muted, fontSize: 13 },
-  errorText: { color: COLORS.accent, fontSize: 12, marginBottom: 8 },
-  segmentCounter: { color: COLORS.muted, fontSize: 11, marginBottom: 8 },
-
-  // Play button
-  playBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.accent,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  playBtnIcon: { color: COLORS.text, fontSize: 24 },
-
-  // Quality
-  qualityRow: { flexDirection: "row", gap: 8 },
-  qualityBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  qualityBtnActive: {
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accent,
-  },
-  qualityLabel: { color: COLORS.muted, fontSize: 12 },
-  qualityLabelActive: { color: COLORS.text, fontWeight: "600" },
-
-  // Comments
-  commentsSection: { flex: 1, marginTop: 16, paddingHorizontal: 16 },
-  commentsHeading: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  commentsList: { flex: 1 },
-  commentsContent: { paddingBottom: 8 },
-
-  comment: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 12,
-    gap: 10,
-  },
-  commentAvatar: { width: 32, height: 32, borderRadius: 16 },
-  commentAvatarPlaceholder: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  commentAvatarInitial: { color: COLORS.text, fontSize: 13, fontWeight: "600" },
-  commentBody: { flex: 1 },
-  commentName: { color: COLORS.muted, fontSize: 11, marginBottom: 2 },
-  commentText: { color: COLORS.text, fontSize: 13 },
-
-  // Comment input
-  commentInputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  commentInput: {
-    flex: 1,
-    backgroundColor: COLORS.card,
-    color: COLORS.text,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    fontSize: 14,
-  },
-  sendBtn: {
-    backgroundColor: COLORS.accent,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  sendBtnText: { color: COLORS.text, fontSize: 13, fontWeight: "600" },
-});

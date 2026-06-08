@@ -1,4 +1,4 @@
-import { View, Text, Image, Pressable, Switch } from "react-native";
+import { View, Text, Image, Pressable, Share } from "react-native";
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/author/profile/header";
@@ -10,40 +10,51 @@ import Spacer from "@/components/spacer";
 import { useCreatorMode } from "@/context/CreatorModeContext";
 import { useRouter } from "expo-router";
 import { useCreatorWelcomeModal } from "@/context/ModalIntances";
+import { useLogoutSheet } from "@/context/CreateSheetContext";
 import { api } from "@/libs/api";
 
 const Profile = () => {
-  const { signOut, user, username } = useAuth();
-  const { toggleCreatorMode, setAm_a_creator } = useCreatorMode();
+  const { user, username } = useAuth();
+  const { toggleCreatorMode } = useCreatorMode();
   const router = useRouter();
   const { open, close } = useCreatorWelcomeModal();
-
-  const handleLogOut = () => {
-    signOut();
-  };
+  const { ref: logoutSheetRef } = useLogoutSheet();
 
   const handleMode = async () => {
     open();
     try {
-      const creator = await api.get(`set_am_a_creator/${user?.id}`);
-      console.log(creator)
+      await api.get(`set_am_a_creator/${user?.id}`);
       setTimeout(() => {
-      close();
-      router.replace("/(tabs)/creator-dashboard");
-      toggleCreatorMode();
-    }, 5000);
+        close();
+        router.replace("/(tabs)/creator-dashboard");
+        toggleCreatorMode();
+      }, 5000);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-    
   };
 
   return (
     <View className="flex-1 bg-background px-4 pb-16">
-      <PageHead title="Profile" has_menu premium />
-      <Header username={username} Sub={0}/>
+      <PageHead
+        title="Profile"
+        has_menu
+        premium
+        iconsList={[icons.share, icons.report]}
+        dropdownList={["Share Profile", "Report a Problem"]}
+        onMenuSelect={(opt) => {
+          if (opt === "Share Profile") {
+            Share.share({ message: "Check out my profile on Echo!" });
+          } else if (opt === "Report a Problem") {
+            router.push("/profile/help");
+          }
+        }}
+      />
+      <Header username={username} Sub={0} />
+
+      {/* Creator mode banner */}
       <Pressable
-        onPress={() => handleMode()}
+        onPress={handleMode}
         className="border border-[#80808025] w-full h-12 rounded-lg mt-5 flex-row items-center justify-between px-2"
       >
         <View className="h-full w-fit flex-row items-center gap-2">
@@ -57,19 +68,50 @@ const Profile = () => {
         </View>
         <Image tintColor="gray" className="w-5 h-5" source={icons.redirect2} />
       </Pressable>
+
       <Spacer value={10} />
-      <ProfileList icon={icons.profile} text="Edit Profile" />
-      <ProfileList icon={icons.notification} text="Notification" />
-      <ProfileList icon={icons.download} text="Download" />
-      <ProfileList icon={icons.contentSetting} text="Content Setting" />
-      <ProfileList icon={icons.security} text="Security" />
+
+      <ProfileList
+        icon={icons.profile}
+        text="Edit Profile"
+        onPress={() => router.push("/profile/edit")}
+      />
+      <ProfileList
+        icon={icons.notification}
+        text="Notification"
+        onPress={() => router.push("/home/notification")}
+      />
+      <ProfileList
+        icon={icons.download}
+        text="Download"
+        onPress={() => router.push("/profile/downloads")}
+      />
+      <ProfileList
+        icon={icons.contentSetting}
+        text="Content Setting"
+        onPress={() => router.push("/profile/content-settings")}
+      />
+      <ProfileList
+        icon={icons.security}
+        text="Security"
+        onPress={() => router.push("/profile/security")}
+      />
       <ProfileList
         icon={icons.langauge}
         text="Langauge and Region"
         secondText="English(US)"
+        onPress={() => router.push("/profile/language")}
       />
-      <ProfileList onPress={handleLogOut} icon={icons.logOut} text="Log out" />
-      <ProfileList icon={icons.error_flash} text="Help Center"  />
+      <ProfileList
+        onPress={() => logoutSheetRef.current?.snapToIndex(1)}
+        icon={icons.logOut}
+        text="Log out"
+      />
+      <ProfileList
+        icon={icons.error_flash}
+        text="Help Center"
+        onPress={() => router.push("/profile/help")}
+      />
     </View>
   );
 };

@@ -232,6 +232,7 @@ import { icons } from "@/constants/icons";
 import { illus } from "@/constants/illustration";
 import { useLivePrivacySheet } from "@/context/CreateSheetContext";
 import { useStream } from "@/context/stream/StreamSetUp";
+import { encode, decode } from "@/libs/websoket";
 import { api } from "@/libs/api";
 import { getAuth } from "@/storage/authStorage";
 import { LinearGradient } from "expo-linear-gradient";
@@ -250,9 +251,8 @@ function useStreamParticipants(
 ): Record<string, StreamParticipants> {
   const [map, setMap] = useState<Record<string, StreamParticipants>>({});
 
-  // Keep all WebSocket connections in a ref — keyed by stream id
   const socketsRef = useRef<Map<string, WebSocket>>(new Map());
-  const handlersRef = useRef<Map<string, () => void>>(new Map());
+  const heartbeatsRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
   useEffect(() => {
     if (!token || streamIds.length === 0) return;
@@ -260,38 +260,28 @@ function useStreamParticipants(
     let msgRef = 0;
     const makeRef = () => String(++msgRef);
 
-    const encode = (
-      joinRef: string | null,
-      ref: string | null,
-      topic: string,
-      event: string,
-      payload: object,
-    ) => JSON.stringify([joinRef, ref, topic, event, payload]);
+    const wsBase =
+      process.env.EXPO_PUBLIC_WS_URL || "ws://10.0.2.2:4000/socket/websocket";
 
-    const decode = (raw: string) => {
-      try {
-        const [join_ref, ref, topic, event, payload] = JSON.parse(raw);
-        return { join_ref, ref, topic, event, payload };
-      } catch {
-        return null;
-      }
-    };
+    const sockets = socketsRef.current;
+    const heartbeats = heartbeatsRef.current;
 
-    // Open one WebSocket per stream id
     streamIds.forEach((streamId) => {
-      // Skip if already connected for this id
-      if (socketsRef.current.has(streamId)) return;
+      if (sockets.has(streamId)) return;
 
       const topic = `scheduled_stream:${streamId}`;
-      const url = `ws://10.0.2.2:4000/socket/websocket?token=${token}&vsn=2.0.0`;
-      const ws = new WebSocket(url);
-      let joinRef: string | null = null;
+      const ws = new WebSocket(`${wsBase}?token=${token}&vsn=2.0.0`);
 
       ws.onopen = () => {
-        console.log(`[participants] socket open for ${streamId}`);
         const jRef = makeRef();
-        joinRef = jRef;
         ws.send(encode(jRef, jRef, topic, "phx_join", {}));
+
+        const hb = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(encode(null, makeRef(), "phoenix", "heartbeat", {}));
+          }
+        }, 30_000);
+        heartbeats.set(streamId, hb);
       };
 
       ws.onmessage = (e) => {
@@ -299,42 +289,36 @@ function useStreamParticipants(
         if (!msg) return;
 
         if (msg.event === "phx_reply") {
-          if (msg.join_ref === joinRef && msg.payload?.status === "ok") {
-            console.log(`[participants] joined ${topic}`);
-          } else if (msg.payload?.status === "error") {
-            console.error(
-              `[participants] join rejected for ${topic}:`,
-              msg.payload.response,
-            );
+          if (msg.payload?.status === "error") {
+            console.error(`[participants] join rejected for ${topic}:`, msg.payload.response);
           }
           return;
         }
 
         if (msg.event === "participants_updated") {
-          console.log(`[participants] updated for ${streamId}:`, msg.payload);
           setMap((prev) => ({ ...prev, [streamId]: msg.payload }));
         }
       };
 
-      ws.onerror = (e) => {
-        console.error(`[participants] error for ${streamId}:`, e);
+      ws.onerror = (e) => console.error(`[participants] error for ${streamId}:`, e);
+
+      ws.onclose = () => {
+        sockets.delete(streamId);
+        const hb = heartbeats.get(streamId);
+        if (hb) {
+          clearInterval(hb);
+          heartbeats.delete(streamId);
+        }
       };
 
-      ws.onclose = (e) => {
-        console.log(`[participants] closed for ${streamId} — code=${e.code}`);
-        socketsRef.current.delete(streamId);
-      };
-
-      socketsRef.current.set(streamId, ws);
+      sockets.set(streamId, ws);
     });
 
-    // Cleanup function — close all sockets opened in this effect
     return () => {
-      socketsRef.current.forEach((ws, id) => {
-        console.log(`[participants] closing socket for ${id}`);
-        ws.close();
-      });
-      socketsRef.current?.clear();
+      heartbeats.forEach((hb) => clearInterval(hb));
+      heartbeats.clear();
+      sockets.forEach((ws) => ws.close());
+      sockets.clear();
     };
   }, [token, streamIds.join(",")]);
 

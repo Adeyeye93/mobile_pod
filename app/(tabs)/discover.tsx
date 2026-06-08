@@ -12,6 +12,8 @@ import { CustomModal } from "@/components/modals/Modal";
 import Preloader from "@/components/screen/preloader";
 import Search from "../discover/search";
 import { useInterest } from "@/context/InterestContext";
+import { useSortFilter } from "@/components/modals/Sort";
+import { useCategorySheet } from "@/context/CreateSheetContext";
 
 const Discover = () => {
   // const [interests, setInterests] = useState([]);
@@ -19,7 +21,9 @@ const Discover = () => {
   const [isMoodLoading, setIsMoodLoading] = useState(true);
   const [mood, setMood] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const { interests, loading } = useInterest()
+  const { interests, loading } = useInterest();
+  const { ref: sortRef } = useSortFilter();
+  const { ref: categorySheetRef } = useCategorySheet();
 
   useEffect(() => {
     const loadMoods = async () => {
@@ -55,7 +59,17 @@ const Discover = () => {
   } else {
     return (
       <View className="flex-1 bg-background px-4 pb-16">
-        <PageHead title="Discover" has_profile has_menu />
+        <PageHead
+          title="Discover"
+          has_profile
+          has_menu
+          iconsList={[icons.sort, icons.filter]}
+          dropdownList={["Sort", "Filter by Category"]}
+          onMenuSelect={(opt) => {
+            if (opt === "Sort") sortRef.current?.expand();
+            if (opt === "Filter by Category") categorySheetRef.current?.expand();
+          }}
+        />
         <Pressable
           onPress={() => setModalVisible(true)}
           className="w-full h-16 bg-[#1f222b] rounded-2xl flex-row items-center justify-start gap-4 pl-6"

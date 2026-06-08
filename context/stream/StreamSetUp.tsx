@@ -5,7 +5,7 @@ interface StreamContextValue {
   setTitle: (value: string) => void;
   description: string;
   setDescription: (value: string) => void;
-  private: boolean;
+  isPrivate: boolean;
   setPrivate: (value: boolean) => void;
   allowComments: boolean;
   setAllowComments: (value: boolean) => void;
@@ -72,7 +72,7 @@ export function StreamProvider({ children }: { children: React.ReactNode }) {
       setTitle,
       description,
       setDescription,
-      private: isPrivate,
+      isPrivate,
       setPrivate,
       allowComments,
       setAllowComments,

@@ -4,7 +4,7 @@
     "slug": "pod_mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/logo-dark.png",
     "scheme": "podmobile",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
@@ -14,10 +14,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/logo.png",
-        "backgroundImage": "./assets/images/logo.png",
-        "monochromeImage": "./assets/images/logo.png"
+        "foregroundImage": "./assets/images/logo-dark.png",
+        "backgroundColor": "#1F222A"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -40,9 +38,10 @@
           "image": "./assets/images/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#1F222A",
+          "backgroundColor": "#ffffff",
           "dark": {
-            "backgroundColor": "#1F222A"
+            "image": "./assets/images/logo.png",
+            "backgroundColor": "#ffffff"
           }
         }
       ],

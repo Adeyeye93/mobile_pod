@@ -1,8 +1,7 @@
 import { View, Image, Text, Pressable } from "react-native";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import React, { useState } from "react";
+import React from "react";
 import Banner from "@/components/author/podcast/Banner";
-import { audioFiles } from "@/constants/audio";
 import { images } from "@/constants/image";
 import PodcastPlayer from "@/components/author/podcast/PodcastPlayer";
 import { LinearGradient } from "expo-linear-gradient";
@@ -10,25 +9,22 @@ import { useImageColors } from "@/hook/useImageColors";
 import { icons } from "@/constants/icons";
 import { usePlayer } from "../modals/player";
 import Comments from "../Comments";
-import {
-useOptionsSheet} from "@/context/CreateSheetContext"; 
+import { useOptionsSheet } from "@/context/CreateSheetContext";
 import AboutArtist from "../AboutArtist";
+import { useAudio } from "@/context/AudioPlayerContext";
 
-const audio = audioFiles.audio3;
 const listenerImageClass = "w-6 h-6 rounded-full -ml-3 border border-[#1E4D5F]";
 
 const Player = () => {
-  const bannerImage = images.pod1;
+  const { currentTrack } = useAudio();
   const { ref } = usePlayer();
-  const [isAtTop, setIsAtTop] = useState(true);
-  const {ref: Opt} = useOptionsSheet()
+  const { ref: Opt } = useOptionsSheet();
+
+  const bannerImage = currentTrack?.thumbnail
+    ? { uri: currentTrack.thumbnail }
+    : images.thumbnail;
 
   const colors = useImageColors(bannerImage);
-
-  const handleScroll = (e: any) => {
-    const scrollY = e.nativeEvent.contentOffset.y;
-    setIsAtTop(scrollY <= 10);
-  };
 
   return (
     <View className="flex-1 bg-background px-4">
@@ -46,7 +42,6 @@ const Player = () => {
       <BottomSheetScrollView
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        onScroll={handleScroll}
         scrollEventThrottle={16}
       >
         <View className="mt-14 h-20 flex-col items-center justify-between">
@@ -58,12 +53,12 @@ const Player = () => {
               <Text className="text-textSecondary font-MonRegular text-sm">
                 PLAYING FROM
               </Text>
-              <Text className="text-textSecondary font-MonBold text-sm">
-                Ted Talk
+              <Text className="text-textSecondary font-MonBold text-sm" numberOfLines={1}>
+                {currentTrack?.creatorName ?? "Echo"}
               </Text>
             </View>
             <Pressable onPress={() => Opt.current?.expand()}>
-              <Image className="w-7 h-7" source={icons.menu}></Image>
+              <Image className="w-7 h-7" source={icons.menu} />
             </Pressable>
           </View>
           <View className="w-full h-1/2 flex flex-row items-center justify-center">
@@ -75,26 +70,36 @@ const Player = () => {
               <Image source={images.profile5} className={listenerImageClass} />
             </View>
             <Text className="text-textPrimary font-MonMedium text-xs">
-              {" "}
-              +3.8k{" "}
+              {" "}+3.8k{" "}
               <Text className="text-secondary font-MonRegular text-xm">
                 listening with you
               </Text>
             </Text>
           </View>
         </View>
+
         <View className="w-full h-fit flex-col items-center justify-start mt-10">
-          <Banner imageUrl={bannerImage} />
+          <Banner
+            imageUrl={bannerImage}
+            title={currentTrack?.title}
+            creator={currentTrack?.creatorName}
+          />
         </View>
-        <PodcastPlayer audioSource={audio} color={colors} />
+
+        <PodcastPlayer color={colors} />
+
         <View className="w-full h-80 flex-col items-center justify-evenly">
           <Comments colors={colors} />
           <AboutArtist
-            artist="Ted Talk"
-            image={images.pod1}
+            artist={currentTrack?.creatorName ?? "Unknown"}
+            image={
+              currentTrack?.creatorAvatar
+                ? { uri: currentTrack.creatorAvatar }
+                : images.pod1
+            }
             followers={2500}
             SreamCount={360000}
-            description="The ScrollView isn't scrolling because it's inside a BottomSheet, and you need to use BottomSheetScrollView instead of the regular ScrollView. However, since you have a horizontal ScrollView, you need to use BottomSheetFlatList or wrap it properly."
+            description=""
           />
         </View>
       </BottomSheetScrollView>
