@@ -86,7 +86,12 @@ api.interceptors.response.use(
       const refreshToken = data?.refreshToken;
       // console.log("THE REFRESH TOKEN",refreshToken)
       if (!refreshToken) {
-        authEvents.signOut();
+        // Only fire the "session expired" toast if the user was previously
+        // authenticated. If there are no tokens at all this is a first-launch
+        // unauthenticated request — don't show a misleading toast.
+        if (data?.accessToken) {
+          authEvents.signOut();
+        }
         return Promise.reject({
           type: "auth",
           message: "Session expired. Please log in again.",

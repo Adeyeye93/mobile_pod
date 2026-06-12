@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/libs/api";
+import { fixMediaUrl } from "@/utils/mediaUrl";
 
 export interface FeedChannelItem {
   id: string;
@@ -17,6 +18,7 @@ export interface FeedRecordingItem {
   creator_id: string;
   thumbnail_url: string | null;
   master_url: string;
+  download_url?: string | null;
   duration_seconds: number;
   published_at: string;
   progress_seconds?: number;
@@ -70,9 +72,21 @@ export function useFeed() {
       setLoading(true);
       setError(null);
       const res = await api.get("feed/home");
-      const data: FeedSection[] = Array.isArray(res.data)
+      const raw: FeedSection[] = Array.isArray(res.data)
         ? res.data
         : (res.data.sections ?? []);
+      // Fix image URLs on every item in every section
+      const data = raw.map((section) => ({
+        ...section,
+        channel: section.channel
+          ? { ...section.channel, thumbnail_url: fixMediaUrl(section.channel.thumbnail_url) }
+          : section.channel,
+        items: (section.items ?? []).map((item: any) => ({
+          ...item,
+          thumbnail_url: fixMediaUrl(item.thumbnail_url),
+          creator_avatar: fixMediaUrl(item.creator_avatar),
+        })),
+      }));
       setSections(data);
     } catch (err: any) {
       setError(err.message ?? "Failed to load feed");

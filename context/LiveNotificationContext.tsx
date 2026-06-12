@@ -20,6 +20,7 @@ type CreatorSession = {
   serverHost: string;
   serverPort: number;
   streamKey: string;
+  secure?: boolean;
   sampleRate?: number;
   channels?: number;
   bitrate?: number;
@@ -135,7 +136,8 @@ export function LiveNotificationProvider({
       session.serverHost,
       session.serverPort,
       session.streamKey,
-      session.title, // ← passed to notification
+      session.title,
+      session.secure ?? false,
     );
     setCurrentSession(session);
     setMode("creator_live");

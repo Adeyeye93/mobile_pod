@@ -1,31 +1,11 @@
-import {
-  useRef,
-  createContext,
-  useContext,
-  useState,
-} from "react";
+import { useState } from "react";
 import BottomSheet, {
   BottomSheetView,
   WINDOW_HEIGHT,
 } from "@gorhom/bottom-sheet";
 import Player from "@/components/page/player";
-
-const PlayerContext = createContext<any>(null);
-
-export function usePlayer() {
-  return useContext(PlayerContext);
-}
-
-export function PlayerProvider({ children }: any) {
-  const ref = useRef<BottomSheet>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  return (
-    <PlayerContext.Provider value={{ ref, isExpanded, setIsExpanded }}>
-      {children}
-    </PlayerContext.Provider>
-  );
-}
+import { usePlayer } from "@/context/PlayerContext";
+export { usePlayer, PlayerProvider } from "@/context/PlayerContext";
 
 export default function PlayerBottomSheet() {
   const { ref: bottomSheetRef, setIsExpanded } = usePlayer();

@@ -9,13 +9,21 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://test.banasave.com/api",
+        "EXPO_PUBLIC_WS_URL": "wss://test.banasave.com/socket/websocket",
+        "EXPO_PUBLIC_RTMP_HOST": "test.banasave.com",
+        "EXPO_PUBLIC_RTMP_SECURE": "false"
+      }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "API_URL": "https://backend-pod.onrender.com/api",
-        "APP_ENV": "production"
+        "EXPO_PUBLIC_API_URL": "https://test.banasave.com/api",
+        "EXPO_PUBLIC_WS_URL": "wss://test.banasave.com/socket/websocket",
+        "EXPO_PUBLIC_RTMP_HOST": "test.banasave.com",
+        "EXPO_PUBLIC_RTMP_SECURE": "false"
       }
     }
   },

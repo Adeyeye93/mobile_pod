@@ -37,6 +37,7 @@ function toRecording(item: FeedRecordingItem): Recording {
     creator_avatar: null,
     peak_viewers: 0,
     master_url: item.master_url,
+    download_url: (item as any).download_url ?? null,
   };
 }
 
@@ -109,6 +110,14 @@ function LiveCardRow({ items }: { items: FeedLiveItem[] }) {
   );
 }
 
+// ─── Build the in-app "see all" navigation URL ────────────────────────────────
+
+function seeAllPath(title: string | null, type: string, see_all_route: string | null | undefined): string | undefined {
+  if (!see_all_route) return undefined;
+  const label = encodeURIComponent(title ?? type);
+  return `/home/${label}?type=${encodeURIComponent(type)}&route=${encodeURIComponent(see_all_route)}`;
+}
+
 // ─── Main FeedSection ─────────────────────────────────────────────────────────
 
 export default function FeedSection({ section }: { section: FeedSectionType }) {
@@ -124,7 +133,7 @@ export default function FeedSection({ section }: { section: FeedSectionType }) {
             <SectionHeader
               title={title}
               action="See All"
-              actionRoute={see_all_route ?? undefined}
+              actionRoute={seeAllPath(title, type, see_all_route)}
             />
           )}
           {/* Already following — no follow button */}
@@ -143,7 +152,7 @@ export default function FeedSection({ section }: { section: FeedSectionType }) {
             <SectionHeader
               title={title}
               action="See All"
-              actionRoute={see_all_route ?? undefined}
+              actionRoute={seeAllPath(title, type, see_all_route)}
             />
           )}
           <RecordingList items={items as FeedRecordingItem[]} />
@@ -171,7 +180,7 @@ export default function FeedSection({ section }: { section: FeedSectionType }) {
             <SectionHeader
               title={title}
               action="See All"
-              actionRoute={see_all_route ?? undefined}
+              actionRoute={seeAllPath(title, type, see_all_route)}
             />
           )}
           <LiveCardRow items={items as FeedLiveItem[]} />
@@ -185,7 +194,7 @@ export default function FeedSection({ section }: { section: FeedSectionType }) {
             <SectionHeader
               title={title}
               action="See All"
-              actionRoute={see_all_route ?? undefined}
+              actionRoute={seeAllPath(title, type, see_all_route)}
             />
           )}
           {/* Map your_shows items as recordings — title + thumbnail + episode count as creator */}
@@ -208,6 +217,7 @@ export default function FeedSection({ section }: { section: FeedSectionType }) {
               creator_avatar: null,
               peak_viewers: 0,
               master_url: "",
+              download_url: null,
             } as Recording))}
           />
         </View>

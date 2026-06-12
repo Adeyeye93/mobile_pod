@@ -3,31 +3,33 @@ import React, { useState } from 'react'
 import { images } from '@/constants/image'
 import { useRouter } from 'expo-router'
 import type { FeedChannelItem } from '@/hook/useFeed'
-import { api } from '@/libs/api'
+import { useFollow as useFollowContext } from '@/context/FollowContext'
 
-function useFollow(creatorId: string, initial: boolean) {
-  const [isFollowing, setIsFollowing] = useState(initial);
+function useFollow(item: FeedChannelItem) {
   const [loading, setLoading] = useState(false);
+  const { follow, unfollow, isFollowing } = useFollowContext();
 
   const toggle = async () => {
     if (loading) return;
     setLoading(true);
-    const prev = isFollowing;
-    setIsFollowing(!prev); // optimistic
     try {
-      if (prev) {
-        await api.delete(`creators/${creatorId}/follow`);
+      if (isFollowing(item.id)) {
+        await unfollow(item.id);
       } else {
-        await api.post(`creators/${creatorId}/follow`);
+        await follow({
+          id: item.id,
+          name: item.name,
+          thumbnail_url: item.thumbnail_url ?? null,
+          follower_count: item.follower_count,
+          is_live: item.is_live,
+        });
       }
-    } catch {
-      setIsFollowing(prev); // revert on error
     } finally {
       setLoading(false);
     }
   };
 
-  return { isFollowing, toggle, loading };
+  return { isFollowing: isFollowing(item.id), toggle, loading };
 }
 
 function ChannelCard({
@@ -38,14 +40,14 @@ function ChannelCard({
   showFollowButton?: boolean;
 }) {
   const router = useRouter();
-  const { isFollowing, toggle, loading } = useFollow(item.id, item.is_following ?? false);
+  const { isFollowing, toggle, loading } = useFollow(item);
 
   return (
     <View className="h-full w-32 flex flex-col justify-between">
-      <Pressable onPress={() => router.push(`/home/author/${item.name}` as any)}>
+      <Pressable onPress={() => router.push(`/home/author/${item.id}` as any)}>
         <View className="w-full h-32 rounded-3xl overflow-hidden">
           <Image
-            source={item.thumbnail_url ? { uri: item.thumbnail_url } : images.thumbnail}
+            source={item.thumbnail_url ? { uri: item.thumbnail_url } : images.chaDefault}
             className="w-full h-full"
           />
         </View>

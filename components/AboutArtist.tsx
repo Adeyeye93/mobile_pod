@@ -3,7 +3,7 @@ import React from "react";
 import { icons } from "@/constants/icons";
 import { useFormatNumber, useSecondsToHours } from "@/hook/FormatArtistData";
 import { useRouter } from "expo-router";
-import { usePlayer } from "./modals/player";
+import { usePlayer } from "@/context/PlayerContext";
 
 type aboutArtist = {
   followers: number;
@@ -11,6 +11,7 @@ type aboutArtist = {
   image: any;
   description: string;
   artist: string;
+  creatorId?: string;
 };
 
 const AboutArtist = ({
@@ -19,6 +20,7 @@ const AboutArtist = ({
   image,
   description,
   artist,
+  creatorId,
 }: aboutArtist) => {
   const formatedNum = useFormatNumber(followers);
   const formatedSec = useSecondsToHours(SreamCount);
@@ -43,7 +45,7 @@ const AboutArtist = ({
             </Text>
           </View>
         </View>
-        <Pressable onPress={() => handleRedirect("/home/author/Ted Talk")}>
+        <Pressable onPress={() => creatorId && handleRedirect(`/home/author/${creatorId}`)}>
           <Image className="w-7 h-7" source={icons.redirect} />
         </Pressable>
       </View>

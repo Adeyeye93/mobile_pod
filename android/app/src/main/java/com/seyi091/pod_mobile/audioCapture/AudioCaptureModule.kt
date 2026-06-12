@@ -141,7 +141,8 @@ class AudioCaptureModule(private val reactContext: ReactApplicationContext) :
           serverHost: String,
           serverPort: Int,
           streamKey: String,
-          streamTitle: String, // ← new: pass from JS so notification shows title
+          streamTitle: String,
+          secure: Boolean,
           promise: Promise
   ) {
     if (publisher != null) {
@@ -160,6 +161,7 @@ class AudioCaptureModule(private val reactContext: ReactApplicationContext) :
                               sampleRate = sampleRate,
                               channels = channels,
                               bitrate = bitrate,
+                              secure = secure,
                               context = reactContext,
                               onWaveform = { points ->
                                 // Emit waveform array to JS every frame

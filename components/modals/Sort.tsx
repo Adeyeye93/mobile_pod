@@ -14,9 +14,11 @@ export function useSortFilter() {
 
 export function SortFilterProvider({ children }: any) {
   const ref = useRef<BottomSheet>(null);
+  const [sortBy, setSortBy] = useState("newest");
+  const [hideCompleted, setHideCompleted] = useState(false);
 
   return (
-    <SortFilterContext.Provider value={{ ref }}>
+    <SortFilterContext.Provider value={{ ref, sortBy, setSortBy, hideCompleted, setHideCompleted }}>
       {children}
     </SortFilterContext.Provider>
   );
@@ -24,27 +26,10 @@ export function SortFilterProvider({ children }: any) {
 
 
 export default function SortFilterE() {
-  const { ref: bottomSheetRef } = useSortFilter();
-  const [sortBy, setSortBy] = useState("newest");
-  const [hideCompleted, setHideCompleted] = useState(false);
+  const { ref: bottomSheetRef, sortBy, setSortBy, hideCompleted, setHideCompleted } = useSortFilter();
   const { setIsSheetOpen } = useUI();
 
-  const handleAnimate = (fromIndex: number, toIndex: number) => {
-    // sheet is starting to open
-    if (toIndex > 0) {
-      setIsSheetOpen(true);
-    }
-
-    // sheet is fully closing
-    if (toIndex === 0) {
-      setIsSheetOpen(false);
-    }
-  };
-
-
-
   const handleSheetChanges = useCallback((index: number) => {
-    console.log("Sheet index:", index);
     setIsSheetOpen(index > 0);
   }, []);
 
@@ -54,7 +39,6 @@ export default function SortFilterE() {
   };
 
   const handleApply = () => {
-    console.log("Applied filters:", { sortBy, hideCompleted });
     bottomSheetRef.current?.close();
   };
 
@@ -68,7 +52,6 @@ export default function SortFilterE() {
         ref={bottomSheetRef}
         snapPoints={[1, 500]}
         onChange={handleSheetChanges}
-        onAnimate={handleAnimate}
         backgroundStyle={{
           backgroundColor: "#1f222b",
           borderTopLeftRadius: 35,

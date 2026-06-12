@@ -4,10 +4,13 @@ import {
   ScrollView,
   RefreshControl,
 } from "react-native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useFeed } from "@/hook/useFeed";
+import { useListeningSessions } from "@/hook/useListeningSessions";
 import FeedSection from "@/components/FeedSection";
 import ListeningNow from "@/components/ListeningNow";
+import { preloadOnWifi } from "@/utils/audioCache";
+import type { FeedRecordingItem } from "@/hook/useFeed";
 
 // Skeleton for a single section while loading
 function SectionSkeleton({ wide }: { wide?: boolean }) {
@@ -28,13 +31,29 @@ function SectionSkeleton({ wide }: { wide?: boolean }) {
 
 const AllFeed = () => {
   const { sections, loading, error, refresh } = useFeed();
+  const { sessions, loading: sessionsLoading, refresh: refreshSessions } = useListeningSessions();
   const [refreshing, setRefreshing] = useState(false);
+
+  // Preload top recording tracks on WiFi after feed loads
+  useEffect(() => {
+    if (loading || !sections.length) return;
+    const recordings: FeedRecordingItem[] = [];
+    for (const section of sections) {
+      for (const item of section.items ?? []) {
+        const r = item as FeedRecordingItem;
+        if (r.download_url && r.master_url) recordings.push(r);
+        if (recordings.length >= 5) break;
+      }
+      if (recordings.length >= 5) break;
+    }
+    recordings.forEach((r) => preloadOnWifi(r.id, r.download_url!).catch(() => {}));
+  }, [loading, sections]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refresh();
+    await Promise.all([refresh(), refreshSessions()]);
     setRefreshing(false);
-  }, [refresh]);
+  }, [refresh, refreshSessions]);
 
   return (
     <ScrollView
@@ -46,7 +65,7 @@ const AllFeed = () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
       }
     >
-      <ListeningNow />
+      <ListeningNow sessions={sessions} loading={sessionsLoading} />
 
       {/* Loading skeletons */}
       {loading && (

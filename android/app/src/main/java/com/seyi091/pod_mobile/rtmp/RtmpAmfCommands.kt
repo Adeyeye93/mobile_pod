@@ -38,10 +38,10 @@ class RtmpAmfCommands(private val input: InputStream, private val output: Output
      * @param host The RTMP server host — used as the app name
      * @param streamKey The stream key fetched from your backend API
      */
-    fun perform(host: String, streamKey: String) {
-        Log.i(TAG, "Sending AMF commands — stream key: $streamKey")
+    fun perform(host: String, streamKey: String, secure: Boolean = false) {
+        Log.i(TAG, "Sending AMF commands — stream key: $streamKey secure=$secure")
 
-        sendConnect(host)
+        sendConnect(host, secure)
         readServerResponse("connect")
 
         sendCreateStream()
@@ -63,7 +63,8 @@ class RtmpAmfCommands(private val input: InputStream, private val output: Output
     //   { app: host, flashVer: "FMLE/3.0", type: "nonprivate" } (object)
     // ---------------------------------------------------------------------------
 
-    private fun sendConnect(host: String) {
+    private fun sendConnect(host: String, secure: Boolean = false) {
+        val scheme = if (secure) "rtmps" else "rtmp"
         val amfBody = ByteArrayOutputStream()
 
         amfBody.write(amfString("connect"))
@@ -73,7 +74,7 @@ class RtmpAmfCommands(private val input: InputStream, private val output: Output
                         mapOf(
                                 "app" to host,
                                 "flashVer" to "FMLE/3.0 (compatible; FMSc/1.0)",
-                                "tcUrl" to "rtmp://$host/live",
+                                "tcUrl" to "$scheme://$host/live",
                                 "type" to "nonprivate"
                         )
                 )

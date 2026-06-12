@@ -13,6 +13,24 @@ import { Image, Pressable, Text, View } from "react-native";
 import Divider from "../divider";
 import Preloader from "../screen/preloader";
 
+const FALLBACK_CATEGORIES = [
+  { id: "1", name: "Technology" },
+  { id: "2", name: "Business" },
+  { id: "3", name: "Education" },
+  { id: "4", name: "Entertainment" },
+  { id: "5", name: "Health & Wellness" },
+  { id: "6", name: "News" },
+  { id: "7", name: "Sports" },
+  { id: "8", name: "Arts & Culture" },
+  { id: "9", name: "Comedy" },
+  { id: "10", name: "Science" },
+  { id: "11", name: "Music" },
+  { id: "12", name: "True Crime" },
+  { id: "13", name: "Society & Culture" },
+  { id: "14", name: "Religion & Spirituality" },
+  { id: "15", name: "Politics" },
+];
+
 const SetCategory = () => {
   const { ref: categorySheetRef } = useCategorySheet();
   const { setCategory, category } = useStream();
@@ -26,24 +44,27 @@ const SetCategory = () => {
 
         const cached = await AsyncStorage.getItem("userInterests");
         if (cached) {
-          setInterests(JSON.parse(cached));
-          setIsLoading(false);
-          return;
+          const parsed = JSON.parse(cached);
+          if (parsed?.length > 0) {
+            setInterests(parsed);
+            setIsLoading(false);
+            return;
+          }
         }
 
         const response = await api.get("/interests");
         const interestsData =
-          response.data.data || response.data.interests || [];
+          response.data.data || response.data.interests || response.data || [];
 
-        setInterests(interestsData);
-
-        await AsyncStorage.setItem(
-          "userInterests",
-          JSON.stringify(interestsData),
-        );
+        if (interestsData.length > 0) {
+          setInterests(interestsData);
+          await AsyncStorage.setItem("userInterests", JSON.stringify(interestsData));
+        } else {
+          setInterests(FALLBACK_CATEGORIES);
+        }
       } catch (error) {
         console.error("Error loading interests:", error);
-        setInterests([]);
+        setInterests(FALLBACK_CATEGORIES);
       } finally {
         setIsLoading(false);
       }

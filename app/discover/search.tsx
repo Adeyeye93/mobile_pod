@@ -6,257 +6,344 @@ import {
   ScrollView,
   Pressable,
 } from "react-native";
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { icons } from "@/constants/icons";
-import Recent from "@/components/search/Recent";
+import { images } from "@/constants/image";
+import { useSearch } from "@/hook/useSearch";
+import { useSearchHistory } from "@/hook/useSearchHistory";
+import { useAudio } from "@/context/AudioPlayerContext";
+import { usePlayer } from "@/context/PlayerContext";
+import { useRouter } from "expo-router";
+import type { Recording } from "@/hook/useRecordings";
+import type { FeedChannelItem } from "@/hook/useFeed";
 
-// Mock data with type (mood or category)
-const HISTORY_DATA: Array<{ name: string; type: "mood" | "category" }> = [
-  { name: "Party", type: "mood" },
-  { name: "Chill", type: "mood" },
-  { name: "Focus", type: "mood" },
-  { name: "Sleep", type: "mood" },
-  { name: "Technology", type: "category" },
-  { name: "Business", type: "category" },
-  { name: "Comedy", type: "category" },
-  { name: "Religion", type: "category" },
-];
+function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0)
+    return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return `${m}:${String(s).padStart(2, "0")} mins`;
+}
 
-// Mock suggestions data
-const ALL_SUGGESTIONS = [
-  { title: "Cool Podcast", category: "Technology" },
-  { title: "Comedy Central", category: "Comedy" },
-  { title: "Cool Down Vibes", category: "Technology" },
-  { title: "Sad Stories", category: "Religion" },
-  { title: "Sad Boi Hours", category: "Comedy" },
-  { title: "Party All Night", category: "Music" },
-  { title: "Party Mix", category: "Music" },
-  { title: "Faith & Spirituality", category: "Religion" },
-  { title: "Religious History", category: "Religion" },
-  { title: "Technology Talk", category: "Technology" },
-  { title: "Tech News Daily", category: "Technology" },
-  { title: "Business Insider", category: "Business" },
-];
-
-// Mock episodes data
-const MOCK_EPISODES: Array<{ id: string; title: string; podcast: string }> = [
-  { id: "1", title: "Episode 1: The Beginning", podcast: "Cool Podcast" },
-  { id: "2", title: "Episode 2: Deep Dive", podcast: "Cool Podcast" },
-  { id: "3", title: "Episode 3: Party Planning", podcast: "Party All Night" },
-  { id: "4", title: "Episode 4: Tech Trends", podcast: "Technology Talk" },
-  { id: "5", title: "Episode 5: Comedy Gold", podcast: "Comedy Central" },
-  {
-    id: "6",
-    title: "Episode 6: Faith Journey",
-    podcast: "Faith & Spirituality",
-  },
-];
-
-const History = ({
+const TermPill = ({
   name,
-  type,
   onPress,
+  onRemove,
 }: {
   name: string;
-  type: "mood" | "category";
   onPress: () => void;
+  onRemove: () => void;
+}) => (
+  <Pressable
+    onPress={onPress}
+    className="bg-[#a7a6a623] p-2 flex-row items-center gap-2 rounded"
+  >
+    <Text className="font-MonRegular text-textSecondary text-sm">{name}</Text>
+    <Pressable onPress={onRemove} className="p-1 bg-[#a7a6a60d] rounded">
+      <Image className="w-3 h-3" tintColor="#6b7280" source={icons.close} />
+    </Pressable>
+  </Pressable>
+);
+
+const ResultItem = ({
+  item,
+  onPlay,
+}: {
+  item: Recording;
+  onPlay: (item: Recording) => void;
 }) => {
+  const { currentTrack, status } = useAudio();
+  const isPlaying = currentTrack?.id === item.id && status.playing;
+
+  return (
+    <View className="w-full flex-row items-center gap-3">
+      <Image
+        source={item.thumbnail ? { uri: item.thumbnail } : images.podDefault}
+        className="w-14 h-14 rounded-xl"
+      />
+      <View className="flex-1">
+        <Text numberOfLines={1} className="text-textPrimary font-MonMedium">
+          {item.title}
+        </Text>
+        <Text className="text-textSecondary font-MonRegular text-xs mt-0.5">
+          {item.creator_name}
+          {item.category ? ` · ${item.category}` : ""}
+        </Text>
+        {item.duration_seconds > 0 && (
+          <Text className="text-gray-500 font-MonRegular text-xs mt-0.5">
+            {formatDuration(item.duration_seconds)}
+          </Text>
+        )}
+      </View>
+      <Pressable
+        onPress={() => onPlay(item)}
+        className="p-2 bg-[#2a2f3a] rounded-full"
+      >
+        <Image
+          className="w-5 h-5"
+          tintColor={isPlaying ? "#fff" : "#6b7280"}
+          source={isPlaying ? icons.pause : icons.play}
+        />
+      </Pressable>
+    </View>
+  );
+};
+
+const HistoryRecordingItem = ({
+  item,
+  onPlay,
+  onRemove,
+}: {
+  item: Recording;
+  onPlay: (item: Recording) => void;
+  onRemove: (id: string) => void;
+}) => (
+  <View className="w-full flex-row items-center justify-between gap-3">
+    <View className="flex-1 flex-row items-center gap-3">
+      <Image
+        source={item.thumbnail ? { uri: item.thumbnail } : images.podDefault}
+        className="w-14 h-14 rounded-xl"
+      />
+      <View className="flex-1 border-l border-[#6b7280] pl-3">
+        <Text
+          numberOfLines={1}
+          className="text-textSecondary font-MonMedium text-base"
+        >
+          {item.title}
+        </Text>
+        <Text
+          numberOfLines={1}
+          className="text-gray-500 font-MonMedium text-sm mt-0.5"
+        >
+          {item.creator_name}
+        </Text>
+      </View>
+    </View>
+    <View className="flex-row gap-3 items-center">
+      <Pressable onPress={() => onPlay(item)}>
+        <Image className="w-6 h-6" tintColor="#6b7280" source={icons.play} />
+      </Pressable>
+      <Pressable onPress={() => onRemove(item.id)}>
+        <Image className="w-5 h-5" tintColor="#6b7280" source={icons.close} />
+      </Pressable>
+    </View>
+  </View>
+);
+
+const ChannelItem = ({ item }: { item: FeedChannelItem }) => {
+  const router = useRouter();
   return (
     <Pressable
-      onPress={onPress}
-      className="bg-[#a7a6a623] p-2 flex-row items-center gap-2 rounded"
+      onPress={() => router.navigate(`/home/author/${item.id}`)}
+      className="flex-row items-center gap-3"
     >
-      <Text className="font-MonRegular text-textSecondary text-sm">{name}</Text>
-      <Pressable className="p-1 bg-[#a7a6a60d] rounded">
-        <Image className="w-3 h-3" source={icons.close} />
-      </Pressable>
+      <Image
+        source={item.thumbnail_url ? { uri: item.thumbnail_url } : images.chaDefault}
+        className="w-12 h-12 rounded-full"
+      />
+      <View className="flex-1">
+        <Text numberOfLines={1} className="text-textPrimary font-MonMedium">
+          {item.name}
+        </Text>
+        <Text className="text-textSecondary font-MonRegular text-xs mt-0.5">
+          {item.follower_count ?? 0} followers
+          {item.is_live ? " · Live now" : ""}
+        </Text>
+      </View>
     </Pressable>
   );
 };
 
-const Search = () => {
-  const [searchInput, setSearchInput] = useState("");
+const LoadingSkeleton = () => (
+  <View className="gap-4 mt-4">
+    {[0, 1, 2].map((i) => (
+      <View key={i} className="flex-row items-center gap-3">
+        <View className="w-14 h-14 rounded-xl bg-white/5" />
+        <View className="flex-1 gap-2">
+          <View className="h-3.5 rounded-full bg-white/5 w-4/5" />
+          <View className="h-3 rounded-full bg-white/5 w-3/5" />
+          <View className="h-3 rounded-full bg-white/5 w-2/5" />
+        </View>
+      </View>
+    ))}
+  </View>
+);
 
-  // Parse search input to separate prefix (mood: or category:) from search term
-  const parseSearchInput = (input: string) => {
-    const prefixMatch = input.match(/^(mood:|category:)\s*/i);
-    if (prefixMatch) {
-      const prefix = prefixMatch[0].toLowerCase();
-      const searchTerm = input.slice(prefix.length).trim();
-      return { prefix, searchTerm };
+const Search = ({ initialQuery = "" }: { initialQuery?: string }) => {
+  const [query, setQuery] = useState(initialQuery);
+  const { results, channels, loading, error } = useSearch(query);
+  const { terms, recordings, addTerm, removeTerm, addRecording, removeRecording } =
+    useSearchHistory();
+  const { loadTrack, toggle, currentTrack } = useAudio();
+  const { ref: playerRef } = usePlayer();
+
+  const handlePlay = (item: Recording) => {
+    addRecording(item);
+    if (currentTrack?.id === item.id) {
+      toggle();
+    } else {
+      loadTrack({
+        id: item.id,
+        title: item.title,
+        creatorName: item.creator_name ?? "Unknown",
+        thumbnail: item.thumbnail,
+        creatorAvatar: item.creator_avatar,
+        masterUrl: item.master_url,
+        downloadUrl: (item as any).download_url ?? null,
+        durationSeconds: item.duration_seconds,
+      });
     }
-    return { prefix: "", searchTerm: input };
+    playerRef.current?.expand();
   };
 
-  const { prefix, searchTerm } = parseSearchInput(searchInput);
-
-  // Filter suggestions based on search term
-  const filteredSuggestions = useMemo(() => {
-    if (searchTerm.trim().length === 0) {
-      return [];
-    }
-    return ALL_SUGGESTIONS.filter((item) =>
-      item.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
-
-  const isSearching = searchInput.trim().length > 0;
-
-  // Handle history click
-  const handleHistoryPress = (name: string, type: "mood" | "category") => {
-    const prefixText = type === "mood" ? "mood:" : "category:";
-    setSearchInput(`${prefixText} ${name}`);
+  const handleSubmit = () => {
+    if (query.trim()) addTerm(query.trim());
   };
+
+  const isSearching = query.trim().length > 0;
 
   return (
     <View className="h-full">
       {/* Search Input */}
-      <View className="border border-[#1f222b] mt-6 flex-row items-center justify-between h-16 rounded-3xl pl-6 bg-[#1f222b]">
+      <View className="border border-[#1f222b] mt-6 flex-row items-center h-16 rounded-3xl pl-6 bg-[#1f222b]">
         <Image tintColor="#6b7280" className="w-6 h-6" source={icons.search} />
         <TextInput
           className="flex-1 font-MonMedium h-full ml-4 text-textPrimary"
           placeholder="Looking for a particular Podcast?"
           placeholderTextColor="#6b7280"
           inputMode="search"
-          value={searchInput}
-          onChangeText={setSearchInput}
+          returnKeyType="search"
+          value={query}
+          onChangeText={setQuery}
+          onSubmitEditing={handleSubmit}
         />
+        {query.length > 0 && (
+          <Pressable onPress={() => setQuery("")} className="pr-5">
+            <Image
+              className="w-4 h-4"
+              tintColor="#6b7280"
+              source={icons.close}
+            />
+          </Pressable>
+        )}
       </View>
 
-      {/* Show history and recent when NOT searching */}
+      {/* Not searching: show history */}
       {!isSearching && (
-        <>
-          {/* History Scrollview */}
-          <View className="h-20">
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                gap: 10,
-                alignItems: "center",
-                justifyContent: "flex-start",
-                paddingHorizontal: 16,
-              }}
-            >
-              {HISTORY_DATA.map((item, index) => (
-                <History
-                  key={index}
-                  name={item.name}
-                  type={item.type}
-                  onPress={() => handleHistoryPress(item.name, item.type)}
-                />
-              ))}
-            </ScrollView>
-          </View>
-
-          {/* Recent Searches Title */}
-          <Text className="text-textSecondary font-MonBold text-xl mt-5 mb-2 px-4">
-            Recent Search
-          </Text>
-
-          {/* Recent Searches Scrollview */}
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              gap: 12,
-              alignItems: "flex-start",
-              marginTop: 10,
-            }}
-          >
-            <Recent />
-            <Recent />
-            <Recent />
-            <Recent />
-            <Recent />
-            <Recent />
-          </ScrollView>
-        </>
-      )}
-
-      {/* Show suggestions when searching */}
-      {isSearching && (
-        <>
-          <View className="flex-1 flex-col">
-            {/* Suggestions Section */}
-            <View className="flex-shrink">
-              <Text className="text-textSecondary font-MonBold text-xl mt-5 mb-2 px-4">
-                {prefix ? `Results for ${prefix} ${searchTerm}` : "Suggestions"}
-              </Text>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 30, gap: 0 }}
+        >
+          {/* Search term pills */}
+          {terms.length > 0 && (
+            <View className="mt-4">
               <ScrollView
-                scrollEnabled={false}
+                horizontal
+                showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{
-                  gap: 12,
-                  alignItems: "flex-start",
-                  marginTop: 10,
+                  gap: 10,
+                  alignItems: "center",
+                  paddingHorizontal: 4,
                 }}
               >
-                {filteredSuggestions.length > 0 ? (
-                  filteredSuggestions.slice(0, 5).map((suggestion, index) => (
-                    <Pressable
-                      key={index}
-                      className="w-full flex-row items-center gap-3 p-3 bg-[#1f222b] rounded-lg"
-                    >
-                      <Image
-                        className="w-5 h-5"
-                        tintColor="#6b7280"
-                        source={icons.search}
-                      />
-                      <View className="flex-1">
-                        <Text className="text-textPrimary font-MonMedium">
-                          {suggestion.title}
-                        </Text>
-                        <Text className="text-textSecondary font-MonRegular text-xs mt-1">
-                          {suggestion.category}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ))
-                ) : (
-                  <Text className="text-textSecondary font-MonRegular text-center w-full mt-10">
-                    No suggestions found
-                    {prefix && ` for "${prefix} ${searchTerm}"`}
-                  </Text>
-                )}
-              </ScrollView>
-            </View>
-
-            {/* Episodes Section */}
-            <View className="flex-1 mt-6">
-              <Text className="text-textSecondary font-MonBold text-xl mb-3 px-4">
-                Episodes
-              </Text>
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                  gap: 12,
-                  paddingBottom: 20,
-                }}
-              >
-                {MOCK_EPISODES.map((episode) => (
-                  <Pressable
-                    key={episode.id}
-                    className="w-full flex-row items-center justify-between p-3 bg-[#1f222b] rounded-lg"
-                  >
-                    <View className="flex-1">
-                      <Text className="text-textPrimary font-MonMedium">
-                        {episode.title}
-                      </Text>
-                      <Text className="text-textSecondary font-MonRegular text-xs mt-1">
-                        {episode.podcast}
-                      </Text>
-                    </View>
-                    <Pressable className="p-2 bg-[#2a2f3a] rounded-full">
-                      <Image
-                        className="w-5 h-5"
-                        source={icons.play}
-                      />
-                    </Pressable>
-                  </Pressable>
+                {terms.map((term) => (
+                  <TermPill
+                    key={term}
+                    name={term}
+                    onPress={() => setQuery(term)}
+                    onRemove={() => removeTerm(term)}
+                  />
                 ))}
               </ScrollView>
             </View>
-          </View>
-        </>
+          )}
+
+          {/* Recent recordings */}
+          {recordings.length > 0 && (
+            <View className="mt-6">
+              <Text className="text-textSecondary font-MonBold text-xl mb-4">
+                Recent Searches
+              </Text>
+              <View className="gap-5">
+                {recordings.map((item) => (
+                  <HistoryRecordingItem
+                    key={item.id}
+                    item={item}
+                    onPlay={handlePlay}
+                    onRemove={removeRecording}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+
+          {terms.length === 0 && recordings.length === 0 && (
+            <View className="items-center mt-16">
+              <Text className="text-textSecondary font-MonRegular text-sm">
+                Search for podcasts, creators, or categories
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      )}
+
+      {/* Searching: show results */}
+      {isSearching && (
+        <View className="flex-1 mt-2">
+          <Text className="text-textSecondary font-MonBold text-xl mt-4 mb-2">
+            Results
+          </Text>
+
+          {loading && <LoadingSkeleton />}
+
+          {!loading && error && (
+            <View className="items-center mt-10">
+              <Text className="text-red-400 font-MonRegular text-sm text-center">
+                {error}
+              </Text>
+            </View>
+          )}
+
+          {!loading && !error && results.length === 0 && channels.length === 0 && (
+            <View className="items-center mt-10">
+              <Text className="text-textSecondary font-MonRegular text-sm text-center">
+                No results for "{query}"
+              </Text>
+            </View>
+          )}
+
+          {!loading && !error && (results.length > 0 || channels.length > 0) && (
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ gap: 16, paddingBottom: 30 }}
+            >
+              {channels.length > 0 && (
+                <View className="gap-4">
+                  <Text className="text-textSecondary font-MonBold text-base">
+                    Creators
+                  </Text>
+                  {channels.map((item) => (
+                    <ChannelItem key={item.id} item={item} />
+                  ))}
+                </View>
+              )}
+
+              {results.length > 0 && (
+                <View className="gap-4">
+                  {channels.length > 0 && (
+                    <Text className="text-textSecondary font-MonBold text-base mt-2">
+                      Episodes
+                    </Text>
+                  )}
+                  {results.map((item) => (
+                    <ResultItem key={item.id} item={item} onPlay={handlePlay} />
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          )}
+        </View>
       )}
     </View>
   );

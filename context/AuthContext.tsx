@@ -4,6 +4,7 @@ import { api } from "@/libs/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useToast } from "@/context/FlashMessageContext";
 import { authEvents } from "@/libs/authEvents";
+import { fixMediaUrl } from "@/utils/mediaUrl";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -21,6 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { show } = useToast();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [bio, setBio] = useState("");
 
   const isAuthenticated = !!user;
 
@@ -30,7 +33,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         setUser(stored.user);
         setEmail(stored.user.email);
-        setUsername(stored.user.email.replace(/@.*$/, ""));
+        setUsername(stored.user.username ?? stored.user.email.replace(/@.*$/, ""));
+        setAvatarUrl(fixMediaUrl(stored.user.avatar_url) ?? "");
+        // fetch fresh profile data (bio, latest avatar)
+        api.get("users/me").then((res) => {
+          const u = res.data?.user ?? res.data;
+          if (u?.avatar_url) setAvatarUrl(fixMediaUrl(u.avatar_url) ?? "");
+          if (u?.username) setUsername(u.username);
+          if (u?.bio) setBio(u.bio ?? "");
+        }).catch((err) => {
+          console.warn("[AuthContext] GET users/me failed:", err?.status ?? err?.response?.status, err?.message);
+        });
       }
       setIsBootstrapping(false);
     })();
@@ -46,7 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await saveAuth(payload);
     setUser(payload.user);
     setEmail(payload.user.email);
-    setUsername(payload.user.email.replace(/@.*$/, ""));
+    setUsername(payload.user.username ?? payload.user.email.replace(/@.*$/, ""));
+    setAvatarUrl(fixMediaUrl(payload.user.avatar_url) ?? "");
   };
 
   const signUp = async (data: SignUpPayload): Promise<void> => {
@@ -60,11 +74,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await saveAuth(payload);
       setUser(payload.user);
       setEmail(payload.user.email);
-      setUsername(payload.user.email.replace(/@.*$/, ""));
+      setUsername(payload.user.username ?? payload.user.email.replace(/@.*$/, ""));
+      setAvatarUrl(fixMediaUrl(payload.user.avatar_url) ?? "");
     } catch (err: any) {
       throw err;
     }
   };
+
+  const updateProfile = useCallback(
+    (updates: { username?: string; avatarUrl?: string; bio?: string }) => {
+      if (updates.username !== undefined) setUsername(updates.username);
+      if (updates.avatarUrl !== undefined) setAvatarUrl(updates.avatarUrl);
+      if (updates.bio !== undefined) setBio(updates.bio);
+    },
+    [],
+  );
 
   const signOut = useCallback(
     async (args?: { message?: string }) => {
@@ -94,9 +118,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isBootstrapping,
         username,
         email,
+        avatarUrl,
+        bio,
         signIn,
         signUp,
         signOut,
+        updateProfile,
       }}
     >
       {children}

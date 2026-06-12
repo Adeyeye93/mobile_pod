@@ -1,16 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/libs/api";
-
-// Strip /api suffix to get the raw server root, e.g. "http://10.0.2.2:4000"
-const API_ROOT = (process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:4000/api/")
-  .replace(/\/api\/?$/, "")
-  .replace(/\/$/, "");
-
-// Backend returns localhost URLs — rewrite them so the device can reach the server
-function rewriteLocalhost(url: string | null): string | null {
-  if (!url) return null;
-  return url.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, API_ROOT);
-}
+import { fixMediaUrl } from "@/utils/mediaUrl";
 
 export interface Recording {
   id: string;
@@ -30,6 +20,7 @@ export interface Recording {
   creator_avatar: string | null;
   peak_viewers: number;
   master_url: string;
+  download_url: string | null;
 }
 
 export function useRecordings() {
@@ -48,8 +39,10 @@ export function useRecordings() {
       // Rewrite any localhost URLs so the device can reach the dev server
       const fixed = list.map((r) => ({
         ...r,
-        master_url: rewriteLocalhost(r.master_url) ?? r.master_url,
-        thumbnail: rewriteLocalhost(r.thumbnail),
+        master_url: fixMediaUrl(r.master_url) ?? r.master_url,
+        download_url: fixMediaUrl(r.download_url),
+        thumbnail: fixMediaUrl(r.thumbnail),
+        creator_avatar: fixMediaUrl(r.creator_avatar),
       }));
 
       setRecordings(fixed);

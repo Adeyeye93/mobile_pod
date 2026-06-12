@@ -2,10 +2,11 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import React from 'react'
 
 type Props = {
-    datas: any[],
-}
+  datas: any[];
+  onSelect?: (name: string) => void;
+};
 
-const Options = ({datas}: Props) => {
+const Options = ({ datas, onSelect }: Props) => {
   return (
     <View className="h-28">
       <ScrollView
@@ -20,7 +21,11 @@ const Options = ({datas}: Props) => {
         }}
       >
         {datas.map((data) => (
-          <TouchableOpacity key={data.id} className="py-2 px-3 bg-[#1f222b] rounded-lg border border-[#8080801d]">
+          <TouchableOpacity
+            key={data.id}
+            onPress={() => onSelect?.(data.name)}
+            className="py-2 px-3 bg-[#1f222b] rounded-lg border border-[#8080801d]"
+          >
             <Text className="text-textSecondary font-MonMedium">{data.name}</Text>
           </TouchableOpacity>
         ))}

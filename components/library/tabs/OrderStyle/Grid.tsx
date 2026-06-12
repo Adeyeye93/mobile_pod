@@ -1,6 +1,5 @@
 import { View, Text, Image, Pressable } from "react-native";
 import React from "react";
-import { images } from "@/constants/image";
 import CreatorCover from "@/components/CreatorCover";
 
 // Define color tones for each playlist type
@@ -31,12 +30,10 @@ const Grid = ({
   episodeCount = 0,
   non_icon,
   author,
+  creatorImages = [],
   onPress
 }: GridProps) => {
   const playlistColor = PLAYLIST_COLORS[Type];
-  const creators = [
-    images.profile1,
-  ];
 
   // Use custom color for this type, OR use image color for "Liked Podcasts"
   const backgroundColor =
@@ -78,7 +75,7 @@ const Grid = ({
           className="w-full h-full  items-center flex-col justify-between"
           onPress={onPress}
         >
-          <CreatorCover creators={creators} />
+          <CreatorCover creators={creatorImages} />
           <View className="w-full h-12 flex-col justify-between">
             <Text
               className="text-xs text-textSecondary font-MonBold"

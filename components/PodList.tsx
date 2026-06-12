@@ -4,7 +4,7 @@ import { images } from '@/constants/image'
 import PlayPauseButton from './playPauseButton';
 import PodTitle from './PodTitle';
 import { useAudio } from '@/context/AudioPlayerContext';
-import { usePlayer } from '@/components/modals/player';
+import { usePlayer } from '@/context/PlayerContext';
 import { useRouter } from 'expo-router';
 import type { Recording } from '@/hook/useRecordings';
 
@@ -36,9 +36,11 @@ let Comp = ({ item }: { item: Recording }) => {
         id: item.id,
         title: item.title,
         creatorName: item.creator_name ?? 'Unknown',
+        creatorId: item.creator_id,
         thumbnail: item.thumbnail,
         creatorAvatar: item.creator_avatar,
         masterUrl: item.master_url,
+        downloadUrl: item.download_url,
         durationSeconds: item.duration_seconds,
       });
       playerRef.current?.expand();
@@ -49,14 +51,14 @@ let Comp = ({ item }: { item: Recording }) => {
     <View className="w-full h-40 flex flex-row justify-between items-center gap-4">
       <View className="w-40 h-full rounded-[28px] overflow-hidden">
         <Image
-          source={item.thumbnail ? { uri: item.thumbnail } : images.thumbnail}
+          source={item.thumbnail ? { uri: item.thumbnail } : images.podDefault}
           className="h-full w-full object-cover"
         />
       </View>
       <View className="flex-1 flex flex-col justify-between items-start h-full">
-        <PodTitle title={item.title} />
+        <PodTitle id={item.id} title={item.title} />
         <View className="flex-row items-center gap-5">
-          <Pressable onPress={() => router.navigate(`/home/author/${item.creator_name}`)}>
+          <Pressable onPress={() => router.navigate(`/home/author/${item.creator_id}` as any)}>
             <Text className={timeClass}>{item.creator_name}</Text>
           </Pressable>
           <Text className={timeClass}>|</Text>

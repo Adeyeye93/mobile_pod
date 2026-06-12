@@ -1,6 +1,8 @@
  interface User {
   id: number;       // matches your API (1)
   email: string;
+  avatar_url?: string;
+  username?: string;
 }
 
  interface AuthResponse {
@@ -28,9 +30,12 @@ interface AuthContextValue {
   isBootstrapping: boolean;
   email: string;
   username: string;
+  avatarUrl: string;
+  bio: string;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (payload: SignUpPayload) => Promise<void>;
   signOut: (args?: { message?: string }) => Promise<void>;
+  updateProfile: (updates: { username?: string; avatarUrl?: string; bio?: string }) => void;
 }
 
 interface FlashMessageOptions {
@@ -101,6 +106,7 @@ interface GridProps {
   episodeCount?: number;
   non_icon?: boolean,
   author?: string,
+  creatorImages?: string[],
   onPress: () => void
 }
 

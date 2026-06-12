@@ -1,4 +1,4 @@
-import { View, Text, Image, Pressable, Share } from "react-native";
+import { View, Text, Image, Pressable } from "react-native";
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/author/profile/header";
@@ -12,9 +12,10 @@ import { useRouter } from "expo-router";
 import { useCreatorWelcomeModal } from "@/context/ModalIntances";
 import { useLogoutSheet } from "@/context/CreateSheetContext";
 import { api } from "@/libs/api";
+import { shareChannel } from "@/utils/share";
 
 const Profile = () => {
-  const { user, username } = useAuth();
+  const { user, username, avatarUrl } = useAuth();
   const { toggleCreatorMode } = useCreatorMode();
   const router = useRouter();
   const { open, close } = useCreatorWelcomeModal();
@@ -44,13 +45,13 @@ const Profile = () => {
         dropdownList={["Share Profile", "Report a Problem"]}
         onMenuSelect={(opt) => {
           if (opt === "Share Profile") {
-            Share.share({ message: "Check out my profile on Echo!" });
+            shareChannel(String(user?.id ?? ""), username || "my profile");
           } else if (opt === "Report a Problem") {
             router.push("/profile/help");
           }
         }}
       />
-      <Header username={username} Sub={0} />
+      <Header username={username} avatarUrl={avatarUrl} Sub={0} />
 
       {/* Creator mode banner */}
       <Pressable

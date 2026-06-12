@@ -4,7 +4,6 @@ import {
   Pressable,
   ScrollView,
   Image,
-  Share,
 } from "react-native";
 import PageHead from "@/components/PageHead";
 import { useCreatorMode } from "@/context/CreatorModeContext";
@@ -14,10 +13,13 @@ import { useAuth } from "@/context/AuthContext";
 import Divider from "@/components/divider";
 import ProfileList from "@/components/ProfileList";
 import { images } from "@/constants/image";
+import { useRouter } from "expo-router";
+import { shareChannel } from "@/utils/share";
 
 export default function CreatorProfile() {
   const { toggleCreatorMode } = useCreatorMode();
-  const { username } = useAuth();
+  const { user, username } = useAuth();
+  const router = useRouter();
 
   return (
     <ScrollView className="flex-1 bg-CreatorBG">
@@ -28,7 +30,7 @@ export default function CreatorProfile() {
         dropdownList={["Share Channel", "Switch to Listener"]}
         onMenuSelect={(opt) => {
           if (opt === "Share Channel") {
-            Share.share({ message: "Check out my channel on Echo!" });
+            shareChannel(String(user?.id ?? ""), username || "my channel");
           } else if (opt === "Switch to Listener") {
             toggleCreatorMode();
           }
@@ -53,11 +55,11 @@ export default function CreatorProfile() {
       </View>
       <Divider gap={40} value={250} />
       <View className="px-4">
-        <ProfileList text="Channel Settings" icon={images.logo} />
+        <ProfileList text="Channel Settings" icon={images.logo} onPress={() => router.push("/creator/channel-settings")} />
         <Divider gap={0} value={400} />
         <ProfileList text="Audio settings" icon={icons.listening} />
         <Divider gap={0} value={400} />
-        <ProfileList text="Your Invites" icon={icons.invites} />
+        <ProfileList text="Your Invites" icon={icons.invites} onPress={() => router.push("/creator/invites")} />
         <Divider gap={40} value={250} />
       </View>
       <View className="w-full h-40 items-center justify-center">

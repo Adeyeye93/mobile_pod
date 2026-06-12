@@ -14,12 +14,13 @@ import { WaveformRecorder } from "../WaveformLine";
 import {
   Pressable,
   ScrollView,
-  Share,
   Text,
   useWindowDimensions,
   View,
   Image,
 } from "react-native";
+import { useAuth } from "@/context/AuthContext";
+import { shareLive } from "@/utils/share";
 import Comment from "../Comment";
 import PageHead from "../PageHead";
 
@@ -88,6 +89,7 @@ const LiveRecorder = () => {
     isStreaming,
     stopCreatorStream,
   } = useLiveNotification();
+  const { user } = useAuth();
   const { ref: liveRecorderSheet } = useLiveRecorderSheet();
   const { width } = useWindowDimensions();
   const scrollViewRef = useRef<ScrollView>(null);
@@ -131,14 +133,8 @@ const LiveRecorder = () => {
     liveRecorderSheet.current?.close();
   };
 
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `Tune in to "${currentSession?.title}" — live now!`,
-      });
-    } catch (e) {
-      console.error("Share error:", e);
-    }
+  const handleShare = () => {
+    shareLive(String(user?.id ?? ""), currentSession?.title ?? "my stream");
   };
 
   return (

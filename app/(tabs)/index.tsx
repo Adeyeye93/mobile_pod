@@ -4,8 +4,10 @@ import {
   Image,
   Pressable,
   ScrollView,
+  Text,
   View,
 } from "react-native";
+import { useNotifications } from "@/context/NotificationsContext";
 import { FilterPill } from "@/components/fielterpill";
 import { useState } from "react";
 import AllFeed from "@/components/page/AllFeed";
@@ -16,7 +18,8 @@ import Episodes from "@/components/page/Episodes";
 
 export default function Index() {
   const router = useRouter();
-    const [active, setActive] = useState<FeedFilter>("all");
+  const { unreadCount } = useNotifications();
+  const [active, setActive] = useState<FeedFilter>("all");
 
   const renderContent = () => {
   switch (active) {
@@ -78,6 +81,13 @@ export default function Index() {
           className="bg-[#35383f] p-2 rounded-3xl"
         >
           <Image source={icons.notification} className="w-6 h-6" />
+          {unreadCount > 0 && (
+            <View className="absolute -top-1 -right-1 bg-primary rounded-full min-w-4 h-4 items-center justify-center px-1">
+              <Text className="text-white font-MonBold text-[9px]">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </Text>
+            </View>
+          )}
         </Pressable>
       </View>
       {renderContent()}

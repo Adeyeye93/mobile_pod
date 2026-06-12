@@ -12,6 +12,7 @@ export interface ModalContentState<T = any> {
   loading: boolean;
   error: string | null;
   tittle: string | null;
+  meta: any;
 }
 
 export interface ModalContentContextType<T = any> extends ModalContentState<T> {
@@ -21,6 +22,7 @@ export interface ModalContentContextType<T = any> extends ModalContentState<T> {
   setError: (error: string | null) => void;
   clear: () => void;
   setTittle: (tittle: string) => void;
+  setMeta: (meta: any) => void;
 }
 
 export function createModalContentContext<T = any>() {
@@ -34,6 +36,7 @@ export function createModalContentContext<T = any>() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [tittle, setTittle] = useState<string | null>(null);
+    const [meta, setMeta] = useState<any>(null);
 
     const value: ModalContentContextType<T> = {
       data,
@@ -41,7 +44,9 @@ export function createModalContentContext<T = any>() {
       loading,
       error,
       tittle,
+      meta,
       setTittle,
+      setMeta,
       setData,
       setContent,
       setLoading,
@@ -51,6 +56,7 @@ export function createModalContentContext<T = any>() {
         setContent(null);
         setLoading(false);
         setError(null);
+        setMeta(null);
       },
     };
 

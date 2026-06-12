@@ -13,7 +13,7 @@ const SecondHeader = ({ topic, channel, thumbnailUrl }: SecondHeaderProps) => {
     <View className='flex flex-1 flex-row items-center justify-start gap-5'>
       <View className='w-14 h-14 rounded-[15px] overflow-hidden'>
         <Image
-          source={thumbnailUrl ? { uri: thumbnailUrl } : images.thumbnail}
+          source={thumbnailUrl ? { uri: thumbnailUrl } : images.chaDefault}
           className='w-full h-full'
         />
       </View>

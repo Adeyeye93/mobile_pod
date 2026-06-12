@@ -5,7 +5,7 @@ import { images } from "@/constants/image";
 import { useImageColors } from "@/hook/useImageColors";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { useAudio } from "@/context/AudioPlayerContext";
-import { usePlayer } from "./player";
+import { usePlayer } from "@/context/PlayerContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useLiveNotification } from "@/context/LiveNotificationContext";
 import { useCreatorMode } from "@/context/CreatorModeContext";
@@ -106,7 +106,7 @@ export default function MiniPlayer() {
   const [isSaved, setIsSaved] = useState(false);
   const bannerImage = currentTrack?.thumbnail
     ? { uri: currentTrack.thumbnail }
-    : images.thumbnail;
+    : images.podDefault;
   const colors = useImageColors(bannerImage);
   const { ref } = usePlayer();
 

@@ -304,6 +304,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.net.Socket
+import javax.net.ssl.SSLSocketFactory
 
 class RtmpAudioPublisher(
         private val host: String,
@@ -312,6 +313,7 @@ class RtmpAudioPublisher(
         private val sampleRate: Int = 44100,
         private val channels: Int = 1,
         private val bitrate: Int = 128_000,
+        private val secure: Boolean = false,
         private val context: Context,
         private val onWaveform: ((FloatArray) -> Unit)? = null // ← new callback
 ) : Thread() {
@@ -351,7 +353,7 @@ class RtmpAudioPublisher(
                             input = socket!!.getInputStream(),
                             output = socket!!.getOutputStream()
                     )
-            amf.perform(host = host, streamKey = streamKey)
+            amf.perform(host = host, streamKey = streamKey, secure = secure)
             initAudio()
             initEncoder()
             running = true
@@ -368,8 +370,13 @@ class RtmpAudioPublisher(
     }
 
     private fun connect() {
-        socket = Socket(host, port)
+        socket = if (secure) {
+            SSLSocketFactory.getDefault().createSocket(host, port)
+        } else {
+            Socket(host, port)
+        }
         out = socket!!.getOutputStream()
+        Log.i(TAG, "Connected to $host:$port (${if (secure) "TLS" else "plain"})")
     }
 
     private fun initAudio() {

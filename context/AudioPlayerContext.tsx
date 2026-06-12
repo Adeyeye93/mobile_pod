@@ -2,14 +2,18 @@ import { createContext, useContext, useMemo, useEffect, useRef, useState } from 
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "@/libs/api";
+import { getCachedUri, cacheTrackBackground, preloadOnWifi } from "@/utils/audioCache";
 
 export interface TrackMeta {
   id: string;
   title: string;
   creatorName: string;
+  creatorId?: string;
   thumbnail: string | null;
   creatorAvatar: string | null;
   masterUrl: string;
+  downloadUrl?: string | null; // packaged MP3 from backend; preferred over HLS masterUrl
+  localUri?: string;           // user-downloaded file; highest priority
   durationSeconds?: number;
 }
 
@@ -25,6 +29,13 @@ interface AudioContextValue {
   isActive: boolean;
   currentTrack: TrackMeta | null;
   loadTrack: (track: TrackMeta) => Promise<void>;
+  // queue
+  queue: TrackMeta[];
+  shuffle: boolean;
+  toggleShuffle: () => void;
+  loadPlaylist: (tracks: TrackMeta[], startIndex?: number) => Promise<void>;
+  skipToNext: () => void;
+  addToQueue: (track: TrackMeta) => void;
 }
 
 const AudioPlayerContext = createContext<AudioContextValue | null>(null);
@@ -41,6 +52,10 @@ export function AudioPlayerProvider({
   const [rate, setRateState] = useState(1);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<TrackMeta | null>(null);
+  const [queue, setQueue] = useState<TrackMeta[]>([]);
+  const [shuffle, setShuffle] = useState(false);
+  const queueRef = useRef<TrackMeta[]>([]);   // stable ref so effects read latest queue
+  const prevPlayingRef = useRef(false);
   const currentTimeRef = useRef(0); // stable ref for use inside intervals
 
   // Load playback rate from storage
@@ -117,6 +132,26 @@ export function AudioPlayerProvider({
     };
   }, [currentTrack?.id, status.playing]);
 
+  // Keep queueRef in sync
+  useEffect(() => { queueRef.current = queue; }, [queue]);
+
+  // Auto-advance when track ends naturally
+  useEffect(() => {
+    const justStopped = prevPlayingRef.current && !status.playing;
+    prevPlayingRef.current = status.playing;
+    if (
+      justStopped &&
+      status.duration > 0 &&
+      status.currentTime >= status.duration - 1.5 &&
+      queueRef.current.length > 0
+    ) {
+      const [next, ...rest] = queueRef.current;
+      queueRef.current = rest;
+      setQueue(rest);
+      loadTrack(next);
+    }
+  }, [status.playing]);
+
   const loadTrack = async (track: TrackMeta) => {
     // Save progress for the track we're leaving
     if (currentTrack && currentTimeRef.current > 0) {
@@ -124,13 +159,61 @@ export function AudioPlayerProvider({
         progress_seconds: Math.floor(currentTimeRef.current),
       }).catch(() => {});
     }
-    setCurrentTrack(track);
+
+    // Prefer: user-downloaded file > cached file > packaged MP3 > HLS stream
+    const cachedUri = track.localUri ? null : await getCachedUri(track.id);
+    const playUri = track.localUri ?? cachedUri ?? track.downloadUrl ?? track.masterUrl;
+
+    setCurrentTrack({ ...track, localUri: track.localUri ?? cachedUri ?? undefined });
     try {
-      player.replace({ uri: track.masterUrl });
+      player.replace({ uri: playUri });
       player.play();
     } catch (err) {
       console.error("[loadTrack] player error:", err);
     }
+
+    // Cache in background after starting — no await, non-blocking
+    if (track.downloadUrl && !track.localUri && !cachedUri) {
+      cacheTrackBackground(track.id, track.downloadUrl).catch(() => {});
+    }
+
+    // Preload next queued track while this one plays
+    const nextTrack = queueRef.current[0];
+    if (nextTrack?.downloadUrl && !nextTrack.localUri) {
+      preloadOnWifi(nextTrack.id, nextTrack.downloadUrl).catch(() => {});
+    }
+  };
+
+  const loadPlaylist = async (tracks: TrackMeta[], startIndex = 0) => {
+    if (!tracks.length) return;
+    let ordered = [...tracks];
+    if (shuffle) {
+      for (let i = ordered.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [ordered[i], ordered[j]] = [ordered[j], ordered[i]];
+      }
+      startIndex = 0;
+    }
+    const rest = [...ordered.slice(0, startIndex), ...ordered.slice(startIndex + 1)];
+    setQueue(rest);
+    queueRef.current = rest;
+    await loadTrack(ordered[startIndex]);
+  };
+
+  const skipToNext = () => {
+    if (!queueRef.current.length) return;
+    const [next, ...rest] = queueRef.current;
+    queueRef.current = rest;
+    setQueue(rest);
+    loadTrack(next);
+  };
+
+  const addToQueue = (track: TrackMeta) => {
+    setQueue((prev) => {
+      const next = [...prev, track];
+      queueRef.current = next;
+      return next;
+    });
   };
 
   const value = useMemo(
@@ -142,6 +225,12 @@ export function AudioPlayerProvider({
       rate,
       currentTrack,
       loadTrack,
+      queue,
+      shuffle,
+      toggleShuffle: () => setShuffle((s) => !s),
+      loadPlaylist,
+      skipToNext,
+      addToQueue,
       play: () => {
         try {
           player.play();
@@ -175,7 +264,7 @@ export function AudioPlayerProvider({
         }
       },
     }),
-    [player, status, rate, currentTrack]
+    [player, status, rate, currentTrack, queue, shuffle]
   );
 
   return (

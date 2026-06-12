@@ -441,7 +441,8 @@ function StartButton({ stream }: { stream: Stream }) {
   const [loading, setLoading] = useState(false);
 
   const RTMP_HOST = process.env.EXPO_PUBLIC_RTMP_HOST ?? "10.0.2.2";
-  const RTMP_PORT = 1935;
+  const RTMP_SECURE = process.env.EXPO_PUBLIC_RTMP_SECURE === "true";
+  const RTMP_PORT = RTMP_SECURE ? 443 : 1935;
 
   // This card's stream is the one currently streaming
   const isThisStreamActive = isStreaming && mode === "creator_live";
@@ -486,6 +487,7 @@ function StartButton({ stream }: { stream: Stream }) {
         title: stream.title,
         serverHost: RTMP_HOST,
         serverPort: RTMP_PORT,
+        secure: RTMP_SECURE,
         streamKey,
       });
     } catch (err: any) {

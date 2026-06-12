@@ -1,15 +1,22 @@
 import Author from "@/components/library/tabs/Author";
 import Downloaded from "@/components/library/tabs/Downloaded";
-import ListModal from "@/components/library/tabs/ListModal";
 import Playlists from "@/components/library/tabs/Playlists";
 import PageHead from "@/components/PageHead";
+import { CustomModal } from "@/components/modals/Modal";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/image";
-import { PlayListModal, usePlayListContent } from "@/context/ModalIntances";
+import { useCustomPlaylists } from "@/hook/useCustomPlaylists";
+import { useLibraryPlaylists } from "@/hook/useLibraryPlaylists";
 import { useImageColors } from "@/hook/useImageColors";
 import { LinearGradient } from "expo-linear-gradient";
-import { useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import {
+  Image,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 type TabType = "playlists" | "author" | "downloaded";
 
@@ -22,29 +29,49 @@ const TABS: { id: TabType; label: string }[] = [
 const Library = () => {
   const colors = useImageColors(images.profile);
   const [activeTab, setActiveTab] = useState<TabType>("playlists");
-  const [modalVisible, setModalVisible] = useState(false);
-  const { tittle, loading, data, content } = usePlayListContent();
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [newPlaylistVisible, setNewPlaylistVisible] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState("");
+  const customLibrary = useCustomPlaylists();
+  const library = useLibraryPlaylists();
+  const searchInputRef = useRef<TextInput>(null);
+
+  const toggleSearch = () => {
+    if (searchVisible) {
+      setSearchQuery("");
+      setSearchVisible(false);
+    } else {
+      setSearchVisible(true);
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+  };
+
+  const handleCreatePlaylist = () => {
+    if (!newPlaylistName.trim()) return;
+    customLibrary.createPlaylist(newPlaylistName);
+    setNewPlaylistName("");
+    setNewPlaylistVisible(false);
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "playlists":
-        return <Playlists color={colors} />;
+        return <Playlists color={colors} searchQuery={searchQuery} library={library} customLibrary={customLibrary} />;
       case "author":
-        return <Author />;
+        return <Author searchQuery={searchQuery} />;
       case "downloaded":
-        return <Downloaded />;
+        return <Downloaded searchQuery={searchQuery} />;
       default:
         return null;
     }
   };
 
   return (
-    <View className="flex-1 bg-background pb-16 ">
+    <View className="flex-1 bg-background pb-16">
       <View
         className="w-full h-fit"
-        style={{
-          backgroundColor: colors.colorOne.value,
-        }}
+        style={{ backgroundColor: colors.colorOne.value }}
       >
         <LinearGradient
           colors={["rgba(0,0,0,0)", "rgba(24,26,32,0.5)", "rgba(24,26,32,1)"]}
@@ -58,17 +85,42 @@ const Library = () => {
           customIcons={[
             {
               icon: icons.search,
-              onPress: () => console.log("TEXT LOG"),
-              testID: "download-btn",
+              onPress: toggleSearch,
+              testID: "search-btn",
             },
             {
               icon: icons.plus,
-              onPress: () => console.log("TEXT LOG"),
-              testID: "share-btn",
+              onPress: () => setNewPlaylistVisible(true),
+              testID: "add-playlist-btn",
             },
           ]}
         />
       </View>
+
+      {/* Inline search bar */}
+      {searchVisible && (
+        <View className="px-4 py-2 bg-background border-b border-[#2a2f3a]">
+          <View className="flex-row items-center bg-[#1f222b] rounded-2xl px-4 h-12 gap-3">
+            <Image tintColor="#6b7280" className="w-5 h-5" source={icons.search} />
+            <TextInput
+              ref={searchInputRef}
+              className="flex-1 font-MonMedium text-textPrimary h-full"
+              placeholder={`Search ${activeTab}...`}
+              placeholderTextColor="#6b7280"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery("")}>
+                <Image className="w-4 h-4" tintColor="#6b7280" source={icons.close} />
+              </Pressable>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Tab bar */}
       <View className="w-full border-b border-[#2a2f3a]">
         <View className="flex-row items-center">
           {TABS.map((tab) => {
@@ -76,7 +128,10 @@ const Library = () => {
             return (
               <Pressable
                 key={tab.id}
-                onPress={() => setActiveTab(tab.id)}
+                onPress={() => {
+                  setActiveTab(tab.id);
+                  setSearchQuery("");
+                }}
                 className="flex-1 py-4 items-center justify-center"
               >
                 <Text
@@ -91,32 +146,52 @@ const Library = () => {
           })}
         </View>
         <View className="flex-row">
-          {TABS.map((tab, index) => {
-            const isActive = activeTab === tab.id;
-            // const indicatorWidth = 100 / TABS.length;
-            return (
-              <View
-                key={`indicator-${tab.id}`}
-                className="flex-1 h-1 bg-[#2a2f3a00]"
-              >
-                {isActive && <View className="flex-1" />}
-              </View>
-            );
-          })}
+          {TABS.map((tab) => (
+            <View key={`indicator-${tab.id}`} className="flex-1 h-1 bg-[#2a2f3a00]">
+              {activeTab === tab.id && <View className="flex-1" />}
+            </View>
+          ))}
         </View>
       </View>
-      <View className="w-full h-10 px-4 flex-row items-center justify-start">
-        <Pressable className="flex-row items-center justify-start gap-2">
-          <Image className="w-4 h-4" source={icons.sort} />
-          <Text className="text-textSecondary font-MonBold text-sm">
-            Newests
-          </Text>
-        </Pressable>
-      </View>
+
       <View className="flex-1">{renderTabContent()}</View>
-      <PlayListModal title={tittle} MenuIcons={[icons.search, icons.menu]}>
-        <ListModal />
-      </PlayListModal>
+
+      {/* New Playlist modal */}
+      <CustomModal
+        visible={newPlaylistVisible}
+        onClose={() => {
+          setNewPlaylistVisible(false);
+          setNewPlaylistName("");
+        }}
+        title="New Playlist"
+        showCloseButton
+        animationType="fade"
+      >
+        <View className="px-2 pt-4 gap-4">
+          <View className="bg-[#1f222b] rounded-2xl px-4 h-14 flex-row items-center">
+            <TextInput
+              className="flex-1 font-MonMedium text-textPrimary h-full"
+              placeholder="Playlist name..."
+              placeholderTextColor="#6b7280"
+              value={newPlaylistName}
+              onChangeText={setNewPlaylistName}
+              returnKeyType="done"
+              onSubmitEditing={handleCreatePlaylist}
+              autoFocus
+            />
+          </View>
+          <Pressable
+            onPress={handleCreatePlaylist}
+            className={`h-14 rounded-2xl items-center justify-center ${
+              newPlaylistName.trim() ? "bg-primary" : "bg-[#2a2f3a]"
+            }`}
+          >
+            <Text className="font-MonBold text-textPrimary text-base">
+              Create Playlist
+            </Text>
+          </Pressable>
+        </View>
+      </CustomModal>
     </View>
   );
 };

@@ -117,7 +117,7 @@ export default function ListenerPlayerScreen() {
 
   const thumbnailSource = params.thumbnailUrl
     ? { uri: params.thumbnailUrl }
-    : images.pod;
+    : images.podDefault;
 
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (

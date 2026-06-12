@@ -1,26 +1,79 @@
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, TextInput, Image, Text } from "react-native";
+import { useState, useMemo } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import PageHead from "@/components/PageHead";
 import Head from "@/components/author/head";
 import Divider from "@/components/divider";
 import AuthorListHead from "@/components/author/authorListHead";
 import Pods from "@/components/author/pods";
+import SortFilterE, { SortFilterProvider, useSortFilter } from "@/components/modals/Sort";
 import { icons } from "@/constants/icons";
-import { images } from "@/constants/image";
-import { LinearGradient } from "expo-linear-gradient";
 import { useImageColors } from "@/hook/useImageColors";
+import { useCreatorProfile } from "@/hook/useCreatorProfile";
+import { useCreatorEpisodes } from "@/hook/useCreatorEpisodes";
+import { images } from "@/constants/image";
 
-const discriptionText =
-  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+// ─── Skeletons ────────────────────────────────────────────────────────────────
 
-const Author = () => {
-  const bannerImage = images.pod5;
+function HeaderSkeleton() {
+  return (
+    <View className="w-full h-52 flex-row items-center justify-between mt-2">
+      <View className="w-36 h-36 rounded-[20px] bg-white/5" />
+      <View className="flex-1 h-40 p-3 gap-4 justify-center">
+        <View className="h-6 w-40 rounded-full bg-white/5" />
+        <View className="h-4 w-28 rounded-full bg-white/5" />
+        <View className="h-10 w-32 rounded-full bg-white/5" />
+      </View>
+    </View>
+  );
+}
 
+function EpisodeSkeleton() {
+  return (
+    <View className="flex-row items-center gap-3 py-4">
+      <View className="w-14 h-14 rounded-2xl bg-white/5" />
+      <View className="flex-1 gap-2">
+        <View className="h-4 w-3/4 rounded-full bg-white/5" />
+        <View className="h-3 w-1/2 rounded-full bg-white/5" />
+      </View>
+      <View className="w-8 h-8 rounded-full bg-white/5" />
+    </View>
+  );
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
+
+function AuthorContent() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { profile, loading: profileLoading, updateFollowing } = useCreatorProfile(id ?? "");
+  const { episodes, loading: episodesLoading } = useCreatorEpisodes(id ?? "");
+  const { sortBy } = useSortFilter();
+
+  const bannerImage = profile?.avatar_url ? { uri: profile.avatar_url } : images.chaDefault;
   const colors = useImageColors(bannerImage);
+
+  const filteredEpisodes = useMemo(() => {
+    let list = [...episodes];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter((e) => e.title.toLowerCase().includes(q));
+    }
+    list.sort((a, b) => {
+      const ta = new Date(a.published_at).getTime();
+      const tb = new Date(b.published_at).getTime();
+      return sortBy === "oldest" ? ta - tb : tb - ta;
+    });
+    return list;
+  }, [episodes, searchQuery, sortBy]);
 
   return (
     <View className="flex-1 bg-background px-4">
       <View
-        className="absolute top-0 h-2/5 left-0 right-0 z-0 flex flex-col items-end justify-end overflow-hidden"
+        className="absolute top-0 h-2/5 left-0 right-0 z-0 overflow-hidden"
         style={{ backgroundColor: colors?.colorOne.value }}
       >
         <LinearGradient
@@ -30,48 +83,97 @@ const Author = () => {
           className="w-full h-full"
         />
       </View>
+
       <PageHead
-        title="Author"
+        title={profile?.channel_name ?? "Channel"}
         customIcons={[
           {
             icon: icons.search,
-            onPress: () => console.log("TEXT LOG"),
-            testID: "download-btn",
+            onPress: () => {
+              setSearchVisible((v) => !v);
+              if (searchVisible) setSearchQuery("");
+            },
+            testID: "search-btn",
           },
         ]}
       />
-      <Head
-        authorDetails={true}
-        Description={discriptionText}
-        imageUrl={bannerImage}
-        title={"The Breakfast Club"}
-        podcastsCount={"120k"}
-      />
-      <AuthorListHead />
+
+      {searchVisible && (
+        <View className="mb-3 flex-row items-center bg-white/8 rounded-xl px-3 py-2 border border-white/10">
+          <Image source={icons.search} className="w-4 h-4 mr-2 opacity-50" />
+          <TextInput
+            autoFocus
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search episodes..."
+            placeholderTextColor="#ffffff50"
+            className="flex-1 text-textPrimary font-MonRegular text-sm"
+          />
+        </View>
+      )}
+
+      {profileLoading ? (
+        <HeaderSkeleton />
+      ) : profile ? (
+        <Head
+          creatorId={profile.id}
+          channelName={profile.channel_name}
+          bio={profile.bio}
+          avatarUrl={profile.avatar_url}
+          followerCount={profile.follower_count}
+          isFollowing={profile.is_following}
+          recordingCount={profile.recording_count}
+          onFollowChange={updateFollowing}
+        />
+      ) : null}
+
+      <AuthorListHead episodeCount={filteredEpisodes.length} />
 
       <ScrollView
         className="flex-1"
-        showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 30, minHeight: "100%" }}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        keyboardShouldPersistTaps="handled"
       >
-        <Divider value={385} gap={25} />
-        <Pods />
-        <Divider value={385} gap={25} />
-        <Pods />
-        <Divider value={385} gap={25} />
-        <Pods />
-        <Divider value={385} gap={25} />
-        <Pods />
-        <Divider value={385} gap={25} />
-        <Pods />
-        <Divider value={385} gap={25} />
-        <Pods />
-        <Divider value={385} gap={25} />
-        <Pods />
+        {episodesLoading ? (
+          <>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <View key={i}>
+                <Divider value={385} gap={25} />
+                <EpisodeSkeleton />
+              </View>
+            ))}
+          </>
+        ) : filteredEpisodes.length === 0 ? (
+          <View className="py-10 items-center">
+            <Text className="text-textSecondary font-MonRegular text-sm">
+              {searchQuery ? "No episodes match your search" : "No episodes yet"}
+            </Text>
+          </View>
+        ) : (
+          filteredEpisodes.map((episode) => (
+            <View key={episode.id}>
+              <Divider value={385} gap={25} />
+              <Pods
+                episode={episode}
+                creatorId={profile?.id ?? ""}
+                creatorName={profile?.channel_name ?? ""}
+                creatorAvatar={profile?.avatar_url}
+              />
+            </View>
+          ))
+        )}
       </ScrollView>
+
+      <SortFilterE />
     </View>
   );
-};
+}
+
+const Author = () => (
+  <SortFilterProvider>
+    <AuthorContent />
+  </SortFilterProvider>
+);
 
 export default Author;
